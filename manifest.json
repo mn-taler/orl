@@ -1,0 +1,16 @@
+{
+  "name": "Open Random Link",
+  "short_name": "Random Link",
+  "description": "Open a random link from your saved list",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f0f0",
+  "theme_color": "#0066cc",
+  "icons": [
+    {
+      "src": "icons/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+}

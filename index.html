@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Random Link</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <div class="container">
+      <h1>Open Random Link</h1>
+      <p>Open a random link from your personal link collection. Works in the browser and on your phone.</p>
+      <button type="button" id="open-random-link-button">Open Random Link</button>
+
+      <div class="add-link">
+        <input type="url" id="link-input" placeholder="https://…" />
+        <button type="button" id="add-link-button">Add</button>
+      </div>
+
+      <section class="link-list-section">
+        <h2>Saved links</h2>
+        <ul id="link-list"></ul>
+        <p id="empty-message" class="empty-message">No links saved yet.</p>
+      </section>
+
+      <div class="app-footer">
+        <p id="status"></p>
+        <input type="file" id="import-file" accept=".json,application/json" hidden />
+        <div class="footer-row">
+          <div class="footer-links">
+            <a href="#" id="import-link" class="footer-link">Import JSON</a>
+            <a href="#" id="export-link" class="footer-link">Export JSON</a>
+          </div>
+          <label class="dark-mode-toggle">
+            <input type="checkbox" id="dark-mode" />
+            <span>Dark mode</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
