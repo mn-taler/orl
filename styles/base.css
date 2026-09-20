@@ -1,0 +1,52 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Gill Sans", "Gill Sans MT", system-ui, sans-serif;
+  font-size: 14px;
+  background: transparent;
+  color: var(--text);
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+input {
+  color: var(--input-text);
+}
+
+input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+button {
+  padding: 12px 20px;
+  min-height: 48px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+  background: var(--surface-hover);
+}
