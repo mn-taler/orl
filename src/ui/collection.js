@@ -5,7 +5,7 @@ import { createTagField } from './chips.js';
 import { createTreeArrow } from './dom.js';
 import { setListInfo } from './status.js';
 
-const expandedNodes = new Set();
+const expandedNodes = new Set([`group:${TAGS_GROUP}`]);
 
 export function expandGroup(name) {
   expandedNodes.add(`group:${name}`);

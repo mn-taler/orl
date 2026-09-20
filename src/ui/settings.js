@@ -1,6 +1,7 @@
-import { DARK_MODE_KEY } from '../config.js';
+import { DARK_MODE_KEY, TAGS_GROUP } from '../config.js';
 import { createExportPayload, getStore, importIncomingStore, normalizeStore } from '../domain/store.js';
 import { applyDarkMode, resolveDarkMode, saveDarkMode } from '../data/preferences.js';
+import { expandGroup } from './collection.js';
 
 export function initSettings({ refreshCollection, setListInfo }) {
   const darkModeCheckbox = document.getElementById('dark-mode');
@@ -71,6 +72,7 @@ export function initSettings({ refreshCollection, setListInfo }) {
       try {
         const incoming = normalizeStore(JSON.parse(reader.result));
         const { added, updated, importedTagCount } = importIncomingStore(getStore(), incoming);
+        expandGroup(TAGS_GROUP);
         refreshCollection();
         if (added > 0) {
           setListInfo(updated > 0 ? `Imported ${added}, updated ${updated}` : `Imported ${added} link(s)`);
