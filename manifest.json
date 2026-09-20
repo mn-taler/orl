@@ -4,7 +4,7 @@
   "description": "Open a random link from your saved list",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f0f0f0",
+  "background_color": "#e4f6e9",
   "theme_color": "#0066cc",
   "icons": [
     {

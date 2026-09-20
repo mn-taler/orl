@@ -101,7 +101,7 @@ function resolveDarkMode() {
 function applyDarkMode(enabled) {
   document.documentElement.classList.toggle('dark', enabled);
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = enabled ? '#1a1a1a' : '#f0f0f0';
+  if (themeColor) themeColor.content = enabled ? '#1a2c22' : '#e4f6e9';
 }
 
 function clampLinkAmount(value) {

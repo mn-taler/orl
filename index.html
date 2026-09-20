@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Open Random Link</title>
-  <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" href="icons/icon128.png" type="image/png" sizes="128x128">
+  <meta name="theme-color" content="#1a2c22">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <script>
@@ -17,7 +18,7 @@
         )
       );
       document.documentElement.classList.toggle('dark', dark);
-      document.querySelector('meta[name="theme-color"]').content = dark ? '#1a1a1a' : '#f0f0f0';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#1a2c22' : '#e4f6e9';
     })();
   </script>
 </head>
@@ -25,7 +26,10 @@
   <div class="page">
     <div class="container">
       <header class="header">
-        <h1>OPEN RANDOM LINK</h1>
+        <h1>
+          <img src="icons/icon128.png" alt="" class="header-icon" />
+          OPEN RANDOM LINK
+        </h1>
         <div class="settings">
           <button type="button" id="settings-button" class="settings-button" aria-label="Settings" aria-expanded="false" aria-haspopup="true" aria-controls="settings-menu">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -43,7 +47,7 @@
           </div>
         </div>
       </header>
-      <p>Open a random link from your personal link collection.</p>
+      <p>Open random links from your personal link collection.</p>
       <button type="button" id="open-button">Open</button>
 
       <section class="options-section">
