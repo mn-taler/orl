@@ -22,9 +22,38 @@ function saveLinks(links) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
 }
 
-function renderLinkList(links, listEl, emptyEl) {
+const EMPTY_LIST_MESSAGE = 'No links saved yet.';
+const STATUS_DURATION_MS = 3000;
+let listInfoTimeoutId = null;
+
+function getListInfoEl() {
+  return document.getElementById('list-info');
+}
+
+function restoreListInfo(links) {
+  const infoEl = getListInfoEl();
+  if (links.length === 0) {
+    infoEl.textContent = EMPTY_LIST_MESSAGE;
+    infoEl.classList.remove('hidden');
+  } else {
+    infoEl.textContent = '';
+    infoEl.classList.add('hidden');
+  }
+}
+
+function setListInfo(message) {
+  const infoEl = getListInfoEl();
+  if (listInfoTimeoutId) clearTimeout(listInfoTimeoutId);
+  infoEl.textContent = message;
+  infoEl.classList.remove('hidden');
+  listInfoTimeoutId = setTimeout(() => {
+    listInfoTimeoutId = null;
+    restoreListInfo(getLinks());
+  }, STATUS_DURATION_MS);
+}
+
+function renderLinkList(links, listEl) {
   listEl.innerHTML = '';
-  emptyEl.classList.toggle('hidden', links.length > 0);
 
   links.forEach((url, index) => {
     const li = document.createElement('li');
@@ -43,27 +72,14 @@ function renderLinkList(links, listEl, emptyEl) {
     removeBtn.addEventListener('click', () => {
       const updated = getLinks().filter((_, i) => i !== index);
       saveLinks(updated);
-      renderLinkList(updated, listEl, emptyEl);
-      setStatus('Removed.');
+      renderLinkList(updated, listEl);
+      setListInfo('Removed.');
     });
 
     li.appendChild(a);
     li.appendChild(removeBtn);
     listEl.appendChild(li);
   });
-}
-
-const STATUS_DURATION_MS = 3000;
-let statusTimeoutId = null;
-
-function setStatus(message) {
-  const status = document.getElementById('status');
-  if (statusTimeoutId) clearTimeout(statusTimeoutId);
-  status.textContent = message;
-  statusTimeoutId = setTimeout(() => {
-    status.textContent = '';
-    statusTimeoutId = null;
-  }, STATUS_DURATION_MS);
 }
 
 function prefersDarkMode() {
@@ -90,16 +106,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const addLinkButton = document.getElementById('add-link-button');
   const linkInput = document.getElementById('link-input');
   const linkList = document.getElementById('link-list');
-  const emptyMessage = document.getElementById('empty-message');
   const darkModeCheckbox = document.getElementById('dark-mode');
+  const settingsButton = document.getElementById('settings-button');
+  const settingsMenu = document.getElementById('settings-menu');
+  const darkModeToggle = darkModeCheckbox.closest('.settings-toggle');
 
   let links = getLinks();
-  renderLinkList(links, linkList, emptyMessage);
+  renderLinkList(links, linkList);
+  restoreListInfo(links);
+
+  const setSettingsMenuOpen = (open) => {
+    settingsMenu.hidden = !open;
+    settingsButton.setAttribute('aria-expanded', String(open));
+  };
 
   const applyResolvedDarkMode = () => {
     const enabled = resolveDarkMode();
     applyDarkMode(enabled);
     darkModeCheckbox.checked = enabled;
+    if (darkModeToggle) darkModeToggle.setAttribute('aria-checked', String(enabled));
   };
 
   applyResolvedDarkMode();
@@ -108,7 +133,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const enabled = darkModeCheckbox.checked;
     localStorage.setItem(DARK_MODE_KEY, String(enabled));
     applyDarkMode(enabled);
-    setStatus(enabled ? 'Dark mode on.' : 'Dark mode off.');
+    if (darkModeToggle) darkModeToggle.setAttribute('aria-checked', String(enabled));
+    setListInfo(enabled ? 'Dark mode on.' : 'Dark mode off.');
+  });
+
+  settingsButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setSettingsMenuOpen(settingsMenu.hidden);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (settingsMenu.hidden) return;
+    if (settingsMenu.contains(e.target) || settingsButton.contains(e.target)) return;
+    setSettingsMenuOpen(false);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !settingsMenu.hidden) {
+      setSettingsMenuOpen(false);
+      settingsButton.focus();
+    }
   });
 
   if (window.matchMedia) {
@@ -121,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('import-link').addEventListener('click', (e) => {
     e.preventDefault();
+    setSettingsMenuOpen(false);
     document.getElementById('import-file').click();
   });
 
@@ -143,11 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveLinks(merged);
         links = merged;
-        renderLinkList(merged, linkList, emptyMessage);
+        renderLinkList(merged, linkList);
         const added = merged.length - existing.length;
-        setStatus(added > 0 ? `Imported ${added} link(s).` : 'No new links (all already saved).');
+        setListInfo(added > 0 ? `Imported ${added} link(s).` : 'No new links (all already saved).');
       } catch {
-        setStatus('Invalid or unsupported JSON file.');
+        setListInfo('Invalid or unsupported JSON file.');
       }
     };
     reader.readAsText(file);
@@ -155,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('export-link').addEventListener('click', (e) => {
     e.preventDefault();
+    setSettingsMenuOpen(false);
     const list = getLinks();
     const exportData = { exportedAt: new Date().toISOString(), links: list };
     const json = JSON.stringify(exportData, null, 2);
@@ -165,36 +211,36 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download = `open-random-link-export-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setStatus('Exported.');
+    setListInfo('Exported.');
   });
 
   openRandomLinkButton.addEventListener('click', () => {
     const list = getLinks();
     if (list.length === 0) {
-      setStatus('No links saved.');
+      setListInfo('No links saved.');
       return;
     }
     const url = list[Math.floor(Math.random() * list.length)];
     window.open(url, '_blank', 'noopener');
-    setStatus('Link opened!');
+    setListInfo('Link opened!');
   });
 
   addLinkButton.addEventListener('click', () => {
     const url = normalizeUrl(linkInput.value);
     if (!url) {
-      setStatus('Please enter a valid URL.');
+    setListInfo('Please enter a valid URL.');
       return;
     }
     links = getLinks();
     if (links.includes(url)) {
-      setStatus('Link is already saved.');
+      setListInfo('Link is already saved.');
       return;
     }
     links.push(url);
     saveLinks(links);
-    renderLinkList(links, linkList, emptyMessage);
+    renderLinkList(links, linkList);
     linkInput.value = '';
-    setStatus('Link added!');
+    setListInfo('Link added!');
   });
 
   linkInput.addEventListener('keydown', (e) => {

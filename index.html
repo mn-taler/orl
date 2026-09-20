@@ -24,7 +24,25 @@
 <body>
   <div class="page">
     <div class="container">
-      <h1>Open Random Link</h1>
+      <header class="header">
+        <h1>Open Random Link</h1>
+        <div class="settings">
+          <button type="button" id="settings-button" class="settings-button" aria-label="Settings" aria-expanded="false" aria-haspopup="true" aria-controls="settings-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <div id="settings-menu" class="settings-menu" role="menu" hidden>
+            <button type="button" id="import-link" class="settings-item" role="menuitem">Import JSON</button>
+            <button type="button" id="export-link" class="settings-item" role="menuitem">Export JSON</button>
+            <label class="settings-item settings-toggle" role="menuitemcheckbox" aria-checked="false">
+              <input type="checkbox" id="dark-mode" />
+              <span>Dark mode</span>
+            </label>
+          </div>
+        </div>
+      </header>
       <p>Open a random link from your personal link collection. Works in the browser and on your phone.</p>
       <button type="button" id="open-random-link-button">Open Random Link</button>
 
@@ -34,25 +52,14 @@
       </div>
 
       <section class="link-list-section">
-        <h2>Saved links</h2>
+        <div class="link-list-heading">
+          <h2>Saved links</h2>
+          <p id="list-info" class="list-info" aria-live="polite">No links saved yet.</p>
+        </div>
         <ul id="link-list"></ul>
-        <p id="empty-message" class="empty-message">No links saved yet.</p>
       </section>
 
-      <div class="app-footer">
-        <p id="status"></p>
-        <input type="file" id="import-file" accept=".json,application/json" hidden />
-        <div class="footer-row">
-          <div class="footer-links">
-            <a href="#" id="import-link" class="footer-link">Import JSON</a>
-            <a href="#" id="export-link" class="footer-link">Export JSON</a>
-          </div>
-          <label class="dark-mode-toggle">
-            <input type="checkbox" id="dark-mode" />
-            <span>Dark mode</span>
-          </label>
-        </div>
-      </div>
+      <input type="file" id="import-file" accept=".json,application/json" hidden />
     </div>
   </div>
   <script src="app.js"></script>
