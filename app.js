@@ -102,7 +102,7 @@ function applyDarkMode(enabled) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const openRandomLinkButton = document.getElementById('open-random-link-button');
+  const openRandomLinkButton = document.getElementById('open-button');
   const addLinkButton = document.getElementById('add-link-button');
   const linkInput = document.getElementById('link-input');
   const linkList = document.getElementById('link-list');
