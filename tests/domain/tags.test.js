@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TAG_PALETTE } from '../../src/config.js';
 import {
+  addCatalogTag,
   createTagEntry,
   normalizeHexColor,
   normalizeOpenTags,
@@ -8,7 +9,9 @@ import {
   normalizeTagCatalogEntry,
   normalizeTags,
   rebuildTagCatalog,
+  removeCatalogTag,
   sameTagList,
+  tagIsUsed,
   validateTag,
 } from '../../src/domain/tags.js';
 import { makeLink, makeStore } from '../helpers.js';
@@ -93,6 +96,36 @@ describe('tag colors', () => {
     expect(normalizeTagCatalogEntry('Work')?.name).toBe('Work');
     expect(normalizeTagCatalogEntry({ label: 'Home', 'color-light': TAG_PALETTE[0].light })?.name).toBe('Home');
     expect(normalizeTagCatalogEntry(null)).toBeNull();
+  });
+});
+
+describe('catalog add and remove', () => {
+  it('should keep unused catalog tags when rebuilding', () => {
+    const store = makeStore(
+      [{ name: 'Main', links: [makeLink('https://a.example', { tags: ['Alpha'] })] }],
+      [{ name: 'Solo', colorLight: TAG_PALETTE[2].light, colorDark: TAG_PALETTE[2].dark }]
+    );
+    rebuildTagCatalog(store, []);
+    expect(store.tags.map((tag) => tag.name)).toEqual(['Solo', 'Alpha']);
+  });
+
+  it('should add a chosen palette color and refuse used-tag deletes', () => {
+    const store = makeStore(
+      [{ name: 'Main', links: [makeLink('https://a.example', { tags: ['Alpha'] })] }],
+      []
+    );
+    rebuildTagCatalog(store, []);
+    expect(tagIsUsed(store, 'Alpha')).toBe(true);
+    expect(removeCatalogTag(store, 'Alpha').error).toBe('Tag is used by a link');
+    const added = addCatalogTag(store, 'Beta', TAG_PALETTE[4]);
+    expect(added.tag).toMatchObject({
+      name: 'Beta',
+      colorLight: TAG_PALETTE[4].light,
+      colorDark: TAG_PALETTE[4].dark,
+    });
+    expect(tagIsUsed(store, 'Beta')).toBe(false);
+    expect(removeCatalogTag(store, 'Beta').error).toBeUndefined();
+    expect(store.tags.map((tag) => tag.name)).toEqual(['Alpha']);
   });
 });
 

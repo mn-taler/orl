@@ -1,7 +1,7 @@
 import { filterOpenLinks, flattenUrls, listOpenGroups } from '../domain/groups.js';
 import { pickRandomLinks } from '../domain/links.js';
 import { getStore } from '../domain/store.js';
-import { normalizeOpenTags, sameTagList } from '../domain/tags.js';
+import { sameTagList } from '../domain/tags.js';
 import {
   clampLinkAmount,
   getLinkAmount,
@@ -11,16 +11,15 @@ import {
   saveOpenGroup,
   saveOpenTags,
 } from '../data/preferences.js';
-import { createTagChip } from './chips.js';
-import { bindDisclosure, createSelectCaret, fillSelect } from './dom.js';
+import { bindDisclosure, fillSelect } from './dom.js';
+import { bindTagMultiSelect } from './tag-select.js';
 
-export function initOpenOptions({ setListInfo }) {
+export function initOpenOptions({ setStatus }) {
   const openRandomLinkButton = document.getElementById('open-button');
   const optionsToggle = document.getElementById('options-toggle');
   const optionsPanel = document.getElementById('options-panel');
   const linkAmountInput = document.getElementById('link-amount');
   const openGroupSelect = document.getElementById('open-group');
-  const openTagSelect = document.getElementById('open-tag');
   const openTagToggle = document.getElementById('open-tag-toggle');
   const openTagMenu = document.getElementById('open-tag-menu');
 
@@ -33,76 +32,16 @@ export function initOpenOptions({ setListInfo }) {
 
   applyLinkAmount(getLinkAmount());
 
-  const setOpenTagMenuOpen = (open) => {
-    openTagMenu.hidden = !open;
-    openTagToggle.setAttribute('aria-expanded', String(open));
-  };
-
-  const selectedOpenTags = () => normalizeOpenTags(openTagSelect.value);
-
-  const renderOpenTagToggle = (tags, selected) => {
-    openTagToggle.innerHTML = '';
-    const value = document.createElement('span');
-    value.className = 'tag-select-value';
-    const entries = tags.filter((tag) => selected.includes(tag.name));
-    if (entries.length > 0) {
-      entries.forEach((tag) => value.appendChild(createTagChip(tag)));
-    } else {
-      value.textContent = 'All';
-    }
-    openTagToggle.appendChild(value);
-    openTagToggle.appendChild(createSelectCaret());
-  };
-
-  const syncTagOptionState = (selected) => {
-    [...openTagMenu.children].forEach((item) => {
-      const value = item.dataset.value;
-      const isSelected = value ? selected.includes(value) : selected.length === 0;
-      item.setAttribute('aria-selected', String(isSelected));
-    });
-  };
-
-  const applyOpenTags = (tags, selected) => {
-    const current = selected.filter((name) => tags.some((tag) => tag.name === name));
-    openTagSelect.value = JSON.stringify(current);
-    saveOpenTags(current);
-    renderOpenTagToggle(tags, current);
-    syncTagOptionState(current);
-    return current;
-  };
-
-  const fillTagSelect = (tags, selected) => {
-    const current = selected.filter((name) => tags.some((tag) => tag.name === name));
-    openTagMenu.innerHTML = '';
-
-    const addOption = (value, content) => {
-      const option = document.createElement('button');
-      option.type = 'button';
-      option.className = 'tag-select-option';
-      option.dataset.value = value;
-      option.setAttribute('role', 'option');
-      if (typeof content === 'string') option.textContent = content;
-      else option.appendChild(content);
-      option.addEventListener('click', () => {
-        if (!value) {
-          applyOpenTags(tags, []);
-          setOpenTagMenuOpen(false);
-          openTagToggle.focus();
-          return;
-        }
-        const next = selectedOpenTags();
-        const index = next.indexOf(value);
-        if (index >= 0) next.splice(index, 1);
-        else next.push(value);
-        applyOpenTags(tags, next);
-      });
-      openTagMenu.appendChild(option);
-    };
-
-    addOption('', 'All');
-    tags.forEach((tag) => addOption(tag.name, createTagChip(tag)));
-    return applyOpenTags(tags, current);
-  };
+  const tagSelect = bindTagMultiSelect({
+    toggle: openTagToggle,
+    menu: openTagMenu,
+    emptyLabel: 'All',
+    includeClear: true,
+    clearLabel: 'All',
+    onChange: (selected) => {
+      saveOpenTags(selected);
+    },
+  });
 
   const refresh = () => {
     const store = getStore();
@@ -112,41 +51,19 @@ export function initOpenOptions({ setListInfo }) {
       getOpenGroup()
     );
     if (group !== getOpenGroup()) saveOpenGroup(group);
-    const tags = fillTagSelect(store.tags, getOpenTags());
+    const tags = tagSelect.refresh(store.tags, getOpenTags());
     if (!sameTagList(tags, getOpenTags())) saveOpenTags(tags);
-    if (openTagMenu.hidden === false && store.tags.length === 0) {
-      setOpenTagMenuOpen(false);
-    }
+    if (optionsPanel.hidden) tagSelect.close();
   };
 
   openGroupSelect.addEventListener('change', () => {
     saveOpenGroup(openGroupSelect.value);
   });
 
-  openTagToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setOpenTagMenuOpen(openTagMenu.hidden);
-  });
-
-  openTagMenu.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-
-  document.addEventListener('click', () => {
-    if (!openTagMenu.hidden) setOpenTagMenuOpen(false);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !openTagMenu.hidden) {
-      setOpenTagMenuOpen(false);
-      openTagToggle.focus();
-    }
-  });
-
   bindDisclosure(optionsToggle, optionsPanel);
 
   optionsToggle.addEventListener('click', () => {
-    if (optionsPanel.hidden) setOpenTagMenuOpen(false);
+    if (optionsPanel.hidden) tagSelect.close();
   });
 
   linkAmountInput.addEventListener('change', () => {
@@ -157,14 +74,14 @@ export function initOpenOptions({ setListInfo }) {
     const store = getStore();
     const allLinks = flattenUrls(store);
     if (allLinks.length === 0) {
-      setListInfo('No links saved');
+      setStatus('open', 'No links saved', 'error');
       return;
     }
     const groupName = openGroupSelect.value;
-    const tagNames = selectedOpenTags();
+    const tagNames = tagSelect.getSelected();
     const list = filterOpenLinks(store, groupName, tagNames).map((link) => link.url);
     if (list.length === 0) {
-      setListInfo('No matching links');
+      setStatus('open', 'No matching links', 'error');
       return;
     }
     const amount = applyLinkAmount(linkAmountInput.value);
@@ -175,15 +92,9 @@ export function initOpenOptions({ setListInfo }) {
       if (popup) opened += 1;
     });
     if (opened === 0) {
-      setListInfo(picked.length === 1 ? 'Popup blocked' : 'Popups blocked');
-    } else if (opened === 1 && picked.length === 1) {
-      setListInfo('Link opened');
+      setStatus('open', picked.length === 1 ? 'Popup blocked' : 'Popups blocked', 'error');
     } else if (opened < picked.length) {
-      setListInfo(`Opened ${opened} of ${picked.length} (popups blocked)`);
-    } else if (opened < amount) {
-      setListInfo(`Opened ${opened} of ${amount}`);
-    } else {
-      setListInfo(`${opened} links opened`);
+      setStatus('open', `Opened ${opened} of ${picked.length} (popups blocked)`, 'error');
     }
   });
 

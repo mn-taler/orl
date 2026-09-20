@@ -35,7 +35,14 @@ input {
 
 input::placeholder {
   color: var(--input-placeholder);
+  font-weight: 400;
   opacity: 1;
+}
+
+#link-input::placeholder,
+#global-tag-input::placeholder {
+  font-size: 13px;
+  font-weight: 400;
 }
 
 button {

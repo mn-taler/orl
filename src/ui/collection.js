@@ -1,11 +1,9 @@
-import { TAGS_GROUP } from '../config.js';
 import { countGroupLinks, groupHasLinks, removeLinkFromStore } from '../domain/groups.js';
 import { getStore, saveStoreSafe } from '../domain/store.js';
-import { createTagField } from './chips.js';
 import { createTagRemoveIcon, createTreeArrow } from './dom.js';
-import { setListInfo } from './status.js';
+import { setStatus } from './status.js';
 
-const expandedNodes = new Set([`group:${TAGS_GROUP}`]);
+const expandedNodes = new Set();
 
 export function expandGroup(name) {
   expandedNodes.add(`group:${name}`);
@@ -38,11 +36,11 @@ function createLinkRow(link, onChange) {
     removeLinkFromStore(store, link.url);
     const error = saveStoreSafe(store);
     if (error) {
-      setListInfo(error);
+      setStatus('collection', error, 'error');
       return;
     }
     onChange();
-    setListInfo('Removed');
+    setStatus('collection', 'Removed', 'success');
   });
 
   frame.appendChild(a);
@@ -111,22 +109,12 @@ function createTreeGroup(group, onChange) {
   return createTreeNode(group.name, `group:${group.name}`, children, countGroupLinks(group), false);
 }
 
-function createTagsGroup(tags) {
-  const fieldWrap = document.createElement('li');
-  fieldWrap.className = 'tree-tag-field';
-  fieldWrap.appendChild(createTagField(tags));
-  return createTreeNode(TAGS_GROUP, `group:${TAGS_GROUP}`, [fieldWrap], tags.length, false);
-}
-
 export function renderCollection(listEl, onChange) {
   const store = getStore();
   listEl.innerHTML = '';
   store.groups.filter(groupHasLinks).forEach((group) => {
     listEl.appendChild(createTreeGroup(group, onChange));
   });
-  if (store.tags.length > 0) {
-    listEl.appendChild(createTagsGroup(store.tags));
-  }
 }
 
 export function refreshGroupSuggestions() {

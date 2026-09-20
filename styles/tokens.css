@@ -16,13 +16,15 @@ html {
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   --tag-bg: #33ae91;
   --tag-text: #e4fffd;
+  --status-error: #c00;
+  --status-success: #1a9a62;
   --glass-bg: rgba(255, 255, 255, 0.4);
   --glass-border: rgba(255, 255, 255, 0.62);
   --glass-highlight: rgba(255, 255, 255, 0.78);
   --glass-shadow: 0 10px 28px rgba(40, 70, 90, 0.1);
   --glass-well: rgba(255, 255, 255, 0.55);
   background-color: #e4f6e9;
-  background-image: linear-gradient(165deg, #dafaf0 0%, #c0d5f5 100%);
+  background-image: linear-gradient(165deg, #c9eee2 0%, #8dadde 100%);
   background-attachment: fixed;
 }
 
@@ -32,7 +34,7 @@ html.dark {
   --text-muted: #9cb7b7;
   --text-subtle: #64717a;
   --input-text: #e0e0e0;
-  --input-placeholder: #777;
+  --input-placeholder: #656e7a;
   --heading: #5d7487;
   --surface: #233140;
   --surface-hover: #1f4d4d;
@@ -44,11 +46,13 @@ html.dark {
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --tag-bg: #5fccb6;
   --tag-text: #121c2e;
+  --status-error: #f08080;
+  --status-success: #7ee0b0;
   --glass-bg: rgba(22, 36, 50, 0.46);
   --glass-border: rgba(255, 255, 255, 0.14);
   --glass-highlight: rgba(255, 255, 255, 0.16);
   --glass-shadow: 0 6px 12px rgba(0, 0, 0, 0.32);
   --glass-well: rgba(16, 28, 42, 0.5);
   background-color: #1a2c22;
-  background-image: linear-gradient(165deg, #0f342c 0%, #0a1230 100%);
+  background-image: linear-gradient(165deg, #063532 0%, #0d123b 100%);
 }

@@ -1,4 +1,4 @@
-import { DARK_MODE_KEY, DARK_MODE_KEY_LEGACY, MAX_IMPORT_BYTES, TAGS_GROUP } from '../config.js';
+import { DARK_MODE_KEY, DARK_MODE_KEY_LEGACY, MAX_IMPORT_BYTES } from '../config.js';
 import {
   createExportPayload,
   getStore,
@@ -8,9 +8,8 @@ import {
 } from '../domain/store.js';
 import { applyDarkMode, resolveDarkMode, saveDarkMode } from '../data/preferences.js';
 import { readStoredValue } from '../data/storage.js';
-import { expandGroup } from './collection.js';
 
-export function initSettings({ refreshCollection, setListInfo }) {
+export function initSettings({ refreshCollection, setStatus }) {
   const darkModeCheckbox = document.getElementById('dark-mode');
   const settingsButton = document.getElementById('settings-button');
   const settingsMenu = document.getElementById('settings-menu');
@@ -35,7 +34,6 @@ export function initSettings({ refreshCollection, setListInfo }) {
     saveDarkMode(enabled);
     applyDarkMode(enabled);
     if (darkModeToggle) darkModeToggle.setAttribute('aria-checked', String(enabled));
-    setListInfo(enabled ? 'Dark mode on' : 'Dark mode off');
   });
 
   settingsButton.addEventListener('click', (e) => {
@@ -75,34 +73,37 @@ export function initSettings({ refreshCollection, setListInfo }) {
     e.target.value = '';
     if (!file) return;
     if (file.size > MAX_IMPORT_BYTES) {
-      setListInfo('Import file is too large');
+      setStatus('settings', 'Import file is too large', 'error');
       return;
     }
     const reader = new FileReader();
-    reader.onerror = () => setListInfo('Could not read import file');
+    reader.onerror = () => setStatus('settings', 'Could not read import file', 'error');
     reader.onload = () => {
       try {
         const incoming = normalizeStore(JSON.parse(reader.result));
         const { added, updated, skipped, importedTagCount } = importIncomingStore(getStore(), incoming);
-        expandGroup(TAGS_GROUP);
         refreshCollection();
         if (added > 0) {
           const extra = [
             updated > 0 ? `updated ${updated}` : '',
             skipped > 0 ? `skipped ${skipped}` : '',
           ].filter(Boolean).join(', ');
-          setListInfo(extra ? `Imported ${added}, ${extra}` : `Imported ${added} link(s)`);
+          setStatus('settings', extra ? `Imported ${added}, ${extra}` : `Imported ${added} link(s)`, 'success');
         } else if (updated > 0) {
-          setListInfo(skipped > 0 ? `Updated ${updated}, skipped ${skipped}` : `Updated ${updated} link(s)`);
+          setStatus('settings', skipped > 0 ? `Updated ${updated}, skipped ${skipped}` : `Updated ${updated} link(s)`, 'success');
         } else if (importedTagCount > 0) {
-          setListInfo('Imported tags');
+          setStatus('settings', 'Imported tags', 'success');
         } else if (skipped > 0) {
-          setListInfo(`No new links (skipped ${skipped})`);
+          setStatus('settings', `No new links (skipped ${skipped})`, 'info');
         } else {
-          setListInfo('No new links (all already saved)');
+          setStatus('settings', 'No new links (all already saved)', 'info');
         }
       } catch (error) {
-        setListInfo(error instanceof SyntaxError ? 'Invalid or unsupported JSON file' : storageErrorMessage(error));
+        setStatus(
+          'settings',
+          error instanceof SyntaxError ? 'Invalid or unsupported JSON file' : storageErrorMessage(error),
+          'error'
+        );
       }
     };
     reader.readAsText(file);
@@ -119,6 +120,6 @@ export function initSettings({ refreshCollection, setListInfo }) {
     a.download = `open-random-link-export-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setListInfo('Exported');
+    setStatus('settings', 'Exported', 'success');
   });
 }

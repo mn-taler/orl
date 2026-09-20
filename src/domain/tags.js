@@ -75,8 +75,8 @@ function nextPaletteIndex(entries) {
 }
 
 function swatchFromPreferred(entries, preferred) {
-  const light = normalizeHexColor(preferred?.colorLight || preferred?.['color-light']);
-  const dark = normalizeHexColor(preferred?.colorDark || preferred?.['color-dark']);
+  const light = normalizeHexColor(preferred?.colorLight || preferred?.['color-light'] || preferred?.light);
+  const dark = normalizeHexColor(preferred?.colorDark || preferred?.['color-dark'] || preferred?.dark);
   const exact = paletteIndexForColors(light, dark);
   if (exact >= 0) return TAG_PALETTE[exact];
   const byLight = TAG_PALETTE.findIndex((swatch) => swatch.light === light);
@@ -132,6 +132,7 @@ export function rebuildTagCatalog(store, extra = []) {
     const tag = normalizeTag(name);
     if (tag && !names.includes(tag)) names.push(tag);
   };
+  (Array.isArray(store.tags) ? store.tags : []).forEach((item) => addName(catalogName(item)));
   collectTagsFromLinks(store).forEach(addName);
   extra.forEach((item) => addName(catalogName(item)));
   names.splice(MAX_TAG_CATALOG);
@@ -184,4 +185,31 @@ export function normalizeOpenTags(value) {
 
 export function sameTagList(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export function tagIsUsed(store, name) {
+  const tag = normalizeTag(name);
+  if (!tag) return false;
+  return linksInStore(store).some((link) => link.tags.includes(tag));
+}
+
+export function addCatalogTag(store, name, preferred) {
+  const error = validateTag(name);
+  if (error) return { error };
+  const tag = String(name).trim();
+  if (store.tags.some((entry) => entry.name === tag)) return { error: 'Tag already exists' };
+  if (store.tags.length >= MAX_TAG_CATALOG) return { error: 'Tag list is full' };
+  const entry = createTagEntry(tag, store.tags, preferred);
+  store.tags.push(entry);
+  return { tag: entry };
+}
+
+export function removeCatalogTag(store, name) {
+  const tag = normalizeTag(name);
+  if (!tag) return { error: 'Please enter a tag' };
+  if (tagIsUsed(store, tag)) return { error: 'Tag is used by a link' };
+  const before = store.tags.length;
+  store.tags = store.tags.filter((entry) => entry.name !== tag);
+  if (store.tags.length === before) return { error: 'Tag not found' };
+  return {};
 }

@@ -96,13 +96,14 @@ button.options-toggle:hover {
 
 .options-arrow {
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   transition: transform 0.15s ease;
+  transform: rotate(90deg);
 }
 
 button.options-toggle[aria-expanded="true"] .options-arrow {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
 }
 
 .options-panel {
@@ -139,11 +140,41 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
 }
 
 #add-link-button,
+#global-tag-add {
+  width: 152px;
+  flex-shrink: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .options-add-button {
   width: 80px;
   flex-shrink: 0;
   padding-left: 0;
   padding-right: 0;
+}
+
+#open-button.is-error,
+#add-link-button.is-error,
+#global-tag-add.is-error {
+  color: var(--status-error);
+}
+
+#open-button.is-success,
+#add-link-button.is-success,
+#global-tag-add.is-success {
+  color: var(--status-success);
+}
+
+#add-link-button.is-error,
+#add-link-button.is-success,
+#add-link-button.is-info,
+#global-tag-add.is-error,
+#global-tag-add.is-success,
+#global-tag-add.is-info {
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 button.options-add-button {
@@ -163,6 +194,96 @@ button.options-add-button {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface-inset);
+}
+
+#global-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tag-add-row {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+.tag-add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  background: var(--surface);
+  color: var(--input-text);
+}
+
+.tag-palette-select {
+  flex-shrink: 0;
+}
+
+button.tag-palette-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  min-height: 48px;
+  padding: 0 12px;
+}
+
+.tag-palette-label {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tag-palette-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.tag-palette-menu[hidden] {
+  display: none;
+}
+
+.tag-palette-swatch {
+  display: block;
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--tag-chip-light, var(--tag-bg));
+}
+
+html.dark .tag-palette-swatch {
+  background: var(--tag-chip-dark, var(--tag-bg));
+}
+
+button.tag-palette-swatch[aria-selected="true"] {
+  border-color: var(--text);
 }
 
 .tag-chip {
@@ -221,18 +342,28 @@ button.tag-chip-remove:hover {
   display: none;
 }
 
-.tag-editor-error {
+.section-status {
   margin: 0;
-  color: #c00;
   font-size: 12px;
+  line-height: 1.2;
+  color: var(--text-subtle);
 }
 
-.tag-editor-error:empty {
+.section-status.is-error {
+  color: var(--status-error);
+}
+
+.section-status.is-success {
+  color: var(--status-success);
+}
+
+.section-status.is-info {
+  color: var(--text-subtle);
+}
+
+.section-status:empty,
+.section-status[hidden] {
   display: none;
-}
-
-html.dark .tag-editor-error {
-  color: #f08080;
 }
 
 .options-row input,
@@ -366,13 +497,9 @@ button.tag-select-option[aria-selected="true"] {
   text-align: left;
 }
 
-#link-group,
-#link-name {
+#link-info-panel .options-row input[type="text"],
+#link-info-panel .tag-select {
   width: 210px;
-}
-
-#tag-input {
-  width: 120px;
 }
 
 #link-list {
@@ -465,10 +592,30 @@ button.tree-toggle:hover {
 .tree-arrow {
   flex-shrink: 0;
   transition: transform 0.15s ease;
+  transform: rotate(90deg);
 }
 
-button.tree-toggle[aria-expanded="true"] .tree-arrow {
-  transform: rotate(90deg);
+button.tree-toggle[aria-expanded="true"] .tree-arrow,
+button.tags-toggle[aria-expanded="true"] .tree-arrow {
+  transform: rotate(-90deg);
+}
+
+button.tags-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+button.tags-toggle:hover {
+  background: transparent;
 }
 
 .tree-label {
@@ -544,12 +691,8 @@ html.dark #link-list .remove-link:hover {
 }
 
 .list-info {
-  margin: 0;
   min-width: 0;
   flex: 1;
-  color: var(--text-subtle);
-  font-size: 12px;
-  line-height: 1.2;
   text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -557,5 +700,10 @@ html.dark #link-list .remove-link:hover {
 }
 
 .list-info.hidden {
+  display: block;
   visibility: hidden;
+}
+
+#settings-status {
+  text-align: right;
 }

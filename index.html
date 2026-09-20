@@ -36,9 +36,10 @@
           </div>
         </div>
       </header>
+      <p id="settings-status" class="section-status" aria-live="polite" hidden></p>
       <p>Open random links from your personal link collection.</p>
       <section class="glass-panel open-section">
-        <button type="button" id="open-button">OPEN</button>
+        <button type="button" id="open-button" aria-live="polite">OPEN</button>
         <section class="options-section">
           <button type="button" id="options-toggle" class="options-toggle" aria-expanded="false" aria-controls="options-panel">
             <svg class="options-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -75,7 +76,7 @@
       <section class="glass-panel add-section">
         <div class="add-link">
           <input type="url" id="link-input" placeholder="https://…" />
-          <button type="button" id="add-link-button">ADD</button>
+          <button type="button" id="add-link-button" aria-live="polite">ADD</button>
         </div>
         <section class="options-section">
           <button type="button" id="link-info-toggle" class="options-toggle" aria-expanded="false" aria-controls="link-info-panel">
@@ -94,12 +95,14 @@
               <input type="text" id="link-name" placeholder="Name" autocomplete="off" />
             </label>
             <div class="options-row">
-              <label class="options-row-label" for="tag-input">Tags</label>
-              <input type="text" id="tag-input" maxlength="128" placeholder="Tag" autocomplete="off" spellcheck="false" />
-              <button type="button" id="add-tag-button" class="options-add-button">ADD</button>
+              <span class="options-row-label" id="draft-tag-label">Tags</span>
+              <div class="tag-select">
+                <button type="button" id="draft-tag-toggle" class="tag-select-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="draft-tag-menu" aria-labelledby="draft-tag-label">
+                  None
+                </button>
+                <div id="draft-tag-menu" class="tag-select-menu" role="listbox" aria-multiselectable="true" hidden></div>
+              </div>
             </div>
-            <div id="draft-tag-list" class="tag-field" hidden></div>
-            <p id="tag-editor-error" class="tag-editor-error" aria-live="polite"></p>
             <datalist id="group-suggestions"></datalist>
           </div>
         </section>
@@ -108,9 +111,28 @@
       <section class="glass-panel link-collection-section">
         <div class="link-collection">
           <h2>COLLECTION</h2>
-          <p id="list-info" class="list-info" aria-live="polite">No links saved yet.</p>
+          <p id="list-info" class="section-status list-info" aria-live="polite">No links saved yet.</p>
         </div>
         <ul id="link-list"></ul>
+      </section>
+
+      <section class="glass-panel tags-section">
+        <button type="button" id="tags-toggle" class="tags-toggle" aria-expanded="false" aria-controls="tags-panel">
+          <h2>TAGS</h2>
+        </button>
+        <div id="tags-panel" hidden>
+          <div id="global-tag-list" hidden></div>
+          <div class="tag-add-row">
+            <input type="text" id="global-tag-input" maxlength="128" placeholder="Tag name" autocomplete="off" spellcheck="false" aria-label="New tag" />
+            <div class="tag-palette-select">
+              <button type="button" id="tag-palette-toggle" class="tag-palette-toggle" aria-label="Tag color" aria-haspopup="listbox" aria-expanded="false" aria-controls="tag-palette">
+                <span class="tag-palette-label">Color</span>
+              </button>
+              <div id="tag-palette" class="tag-palette-menu" role="listbox" aria-label="Tag color" hidden></div>
+            </div>
+            <button type="button" id="global-tag-add" aria-live="polite">ADD</button>
+          </div>
+        </div>
       </section>
 
       <input type="file" id="import-file" accept=".json,application/json" hidden />
