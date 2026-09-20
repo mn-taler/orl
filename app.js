@@ -66,6 +66,25 @@ function setStatus(message) {
   }, STATUS_DURATION_MS);
 }
 
+function prefersDarkMode() {
+  if (!window.matchMedia) return true;
+  if (window.matchMedia('(prefers-color-scheme: light)').matches) return false;
+  return true;
+}
+
+function resolveDarkMode() {
+  const stored = localStorage.getItem(DARK_MODE_KEY);
+  if (stored === 'true') return true;
+  if (stored === 'false') return false;
+  return prefersDarkMode();
+}
+
+function applyDarkMode(enabled) {
+  document.documentElement.classList.toggle('dark', enabled);
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = enabled ? '#1a1a1a' : '#f0f0f0';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const openRandomLinkButton = document.getElementById('open-random-link-button');
   const addLinkButton = document.getElementById('add-link-button');
@@ -77,16 +96,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let links = getLinks();
   renderLinkList(links, linkList, emptyMessage);
 
-  const darkMode = localStorage.getItem(DARK_MODE_KEY) === 'true';
-  document.body.classList.toggle('dark', darkMode);
-  darkModeCheckbox.checked = darkMode;
+  const applyResolvedDarkMode = () => {
+    const enabled = resolveDarkMode();
+    applyDarkMode(enabled);
+    darkModeCheckbox.checked = enabled;
+  };
+
+  applyResolvedDarkMode();
 
   darkModeCheckbox.addEventListener('change', () => {
     const enabled = darkModeCheckbox.checked;
     localStorage.setItem(DARK_MODE_KEY, String(enabled));
-    document.body.classList.toggle('dark', enabled);
+    applyDarkMode(enabled);
     setStatus(enabled ? 'Dark mode on.' : 'Dark mode off.');
   });
+
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (localStorage.getItem(DARK_MODE_KEY) == null) {
+        applyResolvedDarkMode();
+      }
+    });
+  }
 
   document.getElementById('import-link').addEventListener('click', (e) => {
     e.preventDefault();
