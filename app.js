@@ -1,5 +1,8 @@
 const STORAGE_KEY = 'savedLinks';
 const DARK_MODE_KEY = 'darkMode';
+const LINK_AMOUNT_KEY = 'linkAmount';
+const MIN_LINK_AMOUNT = 1;
+const MAX_LINK_AMOUNT = 10;
 
 function normalizeUrl(url) {
   const s = (url || '').trim();
@@ -22,7 +25,7 @@ function saveLinks(links) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
 }
 
-const EMPTY_LIST_MESSAGE = 'No links saved yet.';
+const EMPTY_LIST_MESSAGE = 'No links saved yet';
 const STATUS_DURATION_MS = 3000;
 let listInfoTimeoutId = null;
 
@@ -73,7 +76,7 @@ function renderLinkList(links, listEl) {
       const updated = getLinks().filter((_, i) => i !== index);
       saveLinks(updated);
       renderLinkList(updated, listEl);
-      setListInfo('Removed.');
+      setListInfo('Removed');
     });
 
     li.appendChild(a);
@@ -101,8 +104,36 @@ function applyDarkMode(enabled) {
   if (themeColor) themeColor.content = enabled ? '#1a1a1a' : '#f0f0f0';
 }
 
+function clampLinkAmount(value) {
+  const n = parseInt(value, 10);
+  if (!Number.isInteger(n)) return MIN_LINK_AMOUNT;
+  return Math.min(MAX_LINK_AMOUNT, Math.max(MIN_LINK_AMOUNT, n));
+}
+
+function getLinkAmount() {
+  return clampLinkAmount(localStorage.getItem(LINK_AMOUNT_KEY));
+}
+
+function saveLinkAmount(amount) {
+  localStorage.setItem(LINK_AMOUNT_KEY, String(amount));
+}
+
+function pickRandomLinks(list, count) {
+  const n = Math.min(count, list.length);
+  const remaining = list.slice();
+  const picked = [];
+  for (let i = 0; i < n; i++) {
+    const index = Math.floor(Math.random() * remaining.length);
+    picked.push(remaining.splice(index, 1)[0]);
+  }
+  return picked;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const openRandomLinkButton = document.getElementById('open-button');
+  const optionsToggle = document.getElementById('options-toggle');
+  const optionsPanel = document.getElementById('options-panel');
+  const linkAmountInput = document.getElementById('link-amount');
   const addLinkButton = document.getElementById('add-link-button');
   const linkInput = document.getElementById('link-input');
   const linkList = document.getElementById('link-list');
@@ -110,6 +141,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsButton = document.getElementById('settings-button');
   const settingsMenu = document.getElementById('settings-menu');
   const darkModeToggle = darkModeCheckbox.closest('.settings-toggle');
+
+  const applyLinkAmount = (value) => {
+    const amount = clampLinkAmount(value);
+    linkAmountInput.value = String(amount);
+    saveLinkAmount(amount);
+    return amount;
+  };
+
+  applyLinkAmount(getLinkAmount());
+
+  optionsToggle.addEventListener('click', () => {
+    const open = optionsPanel.hidden;
+    optionsPanel.hidden = !open;
+    optionsToggle.setAttribute('aria-expanded', String(open));
+  });
+
+  linkAmountInput.addEventListener('change', () => {
+    applyLinkAmount(linkAmountInput.value);
+  });
 
   let links = getLinks();
   renderLinkList(links, linkList);
@@ -134,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(DARK_MODE_KEY, String(enabled));
     applyDarkMode(enabled);
     if (darkModeToggle) darkModeToggle.setAttribute('aria-checked', String(enabled));
-    setListInfo(enabled ? 'Dark mode on.' : 'Dark mode off.');
+    setListInfo(enabled ? 'Dark mode on' : 'Dark mode off');
   });
 
   settingsButton.addEventListener('click', (e) => {
@@ -190,9 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
         links = merged;
         renderLinkList(merged, linkList);
         const added = merged.length - existing.length;
-        setListInfo(added > 0 ? `Imported ${added} link(s).` : 'No new links (all already saved).');
+        setListInfo(added > 0 ? `Imported ${added} link(s)` : 'No new links (all already saved)');
       } catch {
-        setListInfo('Invalid or unsupported JSON file.');
+        setListInfo('Invalid or unsupported JSON file');
       }
     };
     reader.readAsText(file);
@@ -211,36 +261,45 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download = `open-random-link-export-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setListInfo('Exported.');
+    setListInfo('Exported');
   });
 
   openRandomLinkButton.addEventListener('click', () => {
     const list = getLinks();
     if (list.length === 0) {
-      setListInfo('No links saved.');
+      setListInfo('No links saved');
       return;
     }
-    const url = list[Math.floor(Math.random() * list.length)];
-    window.open(url, '_blank', 'noopener');
-    setListInfo('Link opened!');
+    const amount = applyLinkAmount(linkAmountInput.value);
+    const picked = pickRandomLinks(list, amount);
+    picked.forEach((url) => {
+      window.open(url, '_blank', 'noopener');
+    });
+    if (picked.length === 1) {
+      setListInfo('Link opened');
+    } else if (picked.length < amount) {
+      setListInfo(`Opened ${picked.length} of ${amount}`);
+    } else {
+      setListInfo(`${picked.length} links opened`);
+    }
   });
 
   addLinkButton.addEventListener('click', () => {
     const url = normalizeUrl(linkInput.value);
     if (!url) {
-    setListInfo('Please enter a valid URL.');
+    setListInfo('Please enter a valid URL');
       return;
     }
     links = getLinks();
     if (links.includes(url)) {
-      setListInfo('Link is already saved.');
+      setListInfo('Link is already saved');
       return;
     }
     links.push(url);
     saveLinks(links);
     renderLinkList(links, linkList);
     linkInput.value = '';
-    setListInfo('Link added!');
+    setListInfo('Link added');
   });
 
   linkInput.addEventListener('keydown', (e) => {
