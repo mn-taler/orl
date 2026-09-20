@@ -16,7 +16,6 @@ html {
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   --tag-bg: #33ae91;
   --tag-text: #e4fffd;
-  --group-list-max-height: 320px;
   --glass-bg: rgba(255, 255, 255, 0.4);
   --glass-border: rgba(255, 255, 255, 0.62);
   --glass-highlight: rgba(255, 255, 255, 0.78);
@@ -44,7 +43,7 @@ html.dark {
   --icon: #ccc;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --tag-bg: #5fccb6;
-  --tag-text: #042421;
+  --tag-text: #121c2e;
   --glass-bg: rgba(22, 36, 50, 0.46);
   --glass-border: rgba(255, 255, 255, 0.14);
   --glass-highlight: rgba(255, 255, 255, 0.16);

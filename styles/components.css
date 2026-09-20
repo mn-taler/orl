@@ -174,7 +174,7 @@ button.options-add-button {
   padding: 3px 4px 3px 8px;
   border-radius: 6px;
   background: var(--tag-chip-light, var(--tag-bg));
-  color: #fff;
+  color: var(--tag-text);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.35;
@@ -378,10 +378,11 @@ button.tag-select-option[aria-selected="true"] {
 #link-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 8px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: transparent;
 }
 
@@ -399,13 +400,7 @@ button.tag-select-option[aria-selected="true"] {
 #link-list .tree-children {
   list-style: none;
   margin: 0;
-  padding: 0 10px 6px 22px;
-}
-
-#link-list .tree-node:not(.tree-node-sub) > .tree-children {
-  max-height: var(--group-list-max-height);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  padding: 0 2px 8px 18px;
 }
 
 #link-list .tree-children[hidden] {
@@ -415,23 +410,23 @@ button.tag-select-option[aria-selected="true"] {
 #link-list .tree-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 4px 8px 6px;
-  min-height: 44px;
-  border-top: 1px solid var(--divider);
+  gap: 8px;
+  padding: 4px 0;
+  min-height: 0;
   font-size: 13px;
 }
 
-.tree-link-main {
+.tree-link-frame {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.tree-link-main .link-url {
-  min-height: 28px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 12px;
+  min-height: 40px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--glass-well);
 }
 
 #link-list .tree-tag-field {
@@ -496,7 +491,7 @@ button.tree-toggle[aria-expanded="true"] .tree-arrow {
 #link-list .link-url {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -516,29 +511,36 @@ html.dark #link-list .link-url {
 }
 
 #link-list .remove-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 6px 12px;
-  min-height: 36px;
-  font-size: 12px;
-  color: #c00;
-  background: transparent;
-  border: 1px solid #f0a0a0;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  padding: 0;
+  border: none;
   border-radius: 6px;
+  background: transparent;
+  color: #c00;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 html.dark #link-list .remove-link {
   color: #f08080;
-  border-color: #663333;
 }
 
 #link-list .remove-link:hover {
-  background: #ffe0e0;
+  background: rgba(204, 0, 0, 0.12);
 }
 
 html.dark #link-list .remove-link:hover {
-  background: #4a2020;
+  background: rgba(240, 128, 128, 0.16);
+}
+
+#link-list .remove-link svg {
+  display: block;
 }
 
 .list-info {

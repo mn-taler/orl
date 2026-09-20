@@ -2,7 +2,7 @@ import { TAGS_GROUP } from '../config.js';
 import { countGroupLinks, groupHasLinks, removeLinkFromStore } from '../domain/groups.js';
 import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createTagField } from './chips.js';
-import { createTreeArrow } from './dom.js';
+import { createTagRemoveIcon, createTreeArrow } from './dom.js';
 import { setListInfo } from './status.js';
 
 const expandedNodes = new Set([`group:${TAGS_GROUP}`]);
@@ -15,8 +15,8 @@ function createLinkRow(link, onChange) {
   const li = document.createElement('li');
   li.className = 'tree-link';
 
-  const main = document.createElement('div');
-  main.className = 'tree-link-main';
+  const frame = document.createElement('div');
+  frame.className = 'tree-link-frame';
 
   const a = document.createElement('a');
   a.href = link.url;
@@ -26,14 +26,13 @@ function createLinkRow(link, onChange) {
   a.textContent = link.name || link.url;
   a.title = link.url;
 
-  main.appendChild(a);
-
+  const label = link.name || link.url;
   const removeBtn = document.createElement('button');
   removeBtn.className = 'remove-link';
   removeBtn.type = 'button';
-  removeBtn.textContent = 'Remove';
+  removeBtn.setAttribute('aria-label', `Remove ${label}`);
+  removeBtn.appendChild(createTagRemoveIcon());
   removeBtn.addEventListener('click', () => {
-    const label = link.name || link.url;
     if (!window.confirm(`Remove ${label}?`)) return;
     const store = getStore();
     removeLinkFromStore(store, link.url);
@@ -46,8 +45,9 @@ function createLinkRow(link, onChange) {
     setListInfo('Removed');
   });
 
-  li.appendChild(main);
-  li.appendChild(removeBtn);
+  frame.appendChild(a);
+  frame.appendChild(removeBtn);
+  li.appendChild(frame);
   return li;
 }
 

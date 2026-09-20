@@ -56,21 +56,22 @@ function paletteIndexForColors(light, dark) {
   return TAG_PALETTE.findIndex((swatch) => swatch.light === light && swatch.dark === dark);
 }
 
-function nextPaletteIndex(entries) {
-  const counts = TAG_PALETTE.map(() => 0);
-  for (const entry of entries) {
-    const index = paletteIndexForColors(entry.colorLight, entry.colorDark);
-    if (index >= 0) counts[index] += 1;
+function recentPaletteIndices(entries, count) {
+  const recent = [];
+  for (let i = entries.length - 1; i >= 0 && recent.length < count; i -= 1) {
+    const index = paletteIndexForColors(entries[i].colorLight, entries[i].colorDark);
+    if (index >= 0 && !recent.includes(index)) recent.push(index);
   }
-  let chosen = 0;
-  let lowest = Infinity;
-  counts.forEach((count, index) => {
-    if (count < lowest) {
-      lowest = count;
-      chosen = index;
-    }
-  });
-  return chosen;
+  return recent;
+}
+
+function nextPaletteIndex(entries) {
+  const blocked = recentPaletteIndices(entries, 2);
+  const pool = TAG_PALETTE
+    .map((_, index) => index)
+    .filter((index) => !blocked.includes(index));
+  const choices = pool.length > 0 ? pool : TAG_PALETTE.map((_, index) => index);
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function swatchFromPreferred(entries, preferred) {

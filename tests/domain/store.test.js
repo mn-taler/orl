@@ -48,7 +48,8 @@ describe('normalizeStore', () => {
     });
     expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Work']);
     expect(store.tags.map((tag) => tag.name)).toEqual(['Alpha', 'Beta']);
-    expect(store.tags[0]).toMatchObject({ colorLight: TAG_PALETTE[0].light, colorDark: TAG_PALETTE[0].dark });
+    expect(TAG_PALETTE.some((swatch) => swatch.light === store.tags[0].colorLight)).toBe(true);
+    expect(store.tags[0].colorLight).not.toBe(store.tags[1].colorLight);
   });
 });
 

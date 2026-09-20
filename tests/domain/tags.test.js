@@ -42,14 +42,21 @@ describe('tag colors', () => {
     expect(normalizeHexColor('blue')).toBe('');
   });
 
-  it('should assign palette colors in order and reuse the least-used tone', () => {
+  it('should not reuse a palette color until two other colors have been used', () => {
+    const indexOf = (entry) => TAG_PALETTE.findIndex(
+      (swatch) => swatch.light === entry.colorLight && swatch.dark === entry.colorDark
+    );
     const assigned = [];
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i < 12; i += 1) {
       assigned.push(createTagEntry(`t${i}`, assigned));
     }
-    expect(assigned[0]).toMatchObject({ colorLight: TAG_PALETTE[0].light, colorDark: TAG_PALETTE[0].dark });
-    expect(assigned[5]).toMatchObject({ colorLight: TAG_PALETTE[5].light, colorDark: TAG_PALETTE[5].dark });
-    expect(assigned[6]).toMatchObject({ colorLight: TAG_PALETTE[0].light, colorDark: TAG_PALETTE[0].dark });
+    assigned.forEach((entry) => {
+      expect(indexOf(entry)).toBeGreaterThanOrEqual(0);
+    });
+    for (let i = 2; i < assigned.length; i += 1) {
+      expect(indexOf(assigned[i])).not.toBe(indexOf(assigned[i - 1]));
+      expect(indexOf(assigned[i])).not.toBe(indexOf(assigned[i - 2]));
+    }
   });
 
   it('should keep an exact imported palette pair', () => {
@@ -74,8 +81,12 @@ describe('tag colors', () => {
     ]);
     rebuildTagCatalog(store, ['Beta']);
     expect(store.tags.map((tag) => tag.name)).toEqual(['Alpha', 'Beta']);
-    expect(store.tags[0]).toMatchObject({ colorLight: TAG_PALETTE[0].light, colorDark: TAG_PALETTE[0].dark });
-    expect(store.tags[1]).toMatchObject({ colorLight: TAG_PALETTE[1].light, colorDark: TAG_PALETTE[1].dark });
+    const paletteOf = (entry) => TAG_PALETTE.find(
+      (swatch) => swatch.light === entry.colorLight && swatch.dark === entry.colorDark
+    );
+    expect(paletteOf(store.tags[0])).toBeTruthy();
+    expect(paletteOf(store.tags[1])).toBeTruthy();
+    expect(store.tags[0].colorLight).not.toBe(store.tags[1].colorLight);
   });
 
   it('should read catalog names from string or object forms', () => {
