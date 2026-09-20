@@ -35,21 +35,20 @@ styles/
   layout.css            # page frame and glass panels
   components.css        # settings, options, tags, collection
 tests/                  # Vitest unit tests
+.github/workflows/      # GitHub Actions: test, then deploy
 ```
 
 `src/main.js` wires the UI modules. Domain code does not touch the DOM.
 
 ## Deploy to GitHub Pages
 
-1. **Create a new repository** on GitHub (e.g. `open-random-link`).
+CI is defined in `.github/workflows/ci.yml`. On every push and pull request it runs `npm test`. A deploy to GitHub Pages runs only on `main`, and only after those tests pass.
 
-2. **Put the webapp files in the repo root** so GitHub Pages can serve them:
-   - Copy `index.html`, `manifest.json`, `README.md`, plus the `src`, `styles`, and `icons` folders.
-   - The repo root should contain `index.html` directly.
+1. Once, in the GitHub repo: **Settings → Pages → Source: GitHub Actions**.
+2. Push to `main`. After a green workflow the site is at `https://<username>.github.io/<repo-name>/`.
+3. On your phone, open that URL and use the browser menu **Add to Home Screen**.
 
-3. **Enable GitHub Pages:** Settings → Pages → Source: "Deploy from a branch" → Branch: `main`, folder **/ (root)** → Save. The site will be at `https://<username>.github.io/<repo-name>/`.
-
-4. On your phone, open that URL and use the browser menu **Add to Home Screen** so it opens like an app.
+This works on a free GitHub account. Actions minutes are free for public repositories. GitHub Pages on the free plan is also meant for public repos.
 
 ## Run locally
 
