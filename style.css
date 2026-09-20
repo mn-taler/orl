@@ -253,8 +253,7 @@ html.dark .options-panel {
 .options-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   font-size: 13px;
   color: #555;
 }
@@ -263,9 +262,32 @@ html.dark .options-row {
   color: #aaa;
 }
 
+.options-row-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.options-row-hint {
+  flex-shrink: 0;
+  color: #888;
+  text-align: right;
+}
+
+html.dark .options-row-hint {
+  color: #777;
+}
+
+#add-link-button {
+  width: 80px;
+  flex-shrink: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .options-row input {
-  width: 72px;
-  padding: 8px 10px;
+  width: 60px;
+  flex-shrink: 0;
+  padding: 8px 6px;
   min-height: 36px;
   border: 1px solid #ccc;
   border-radius: 6px;
