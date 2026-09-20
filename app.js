@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'savedLinks';
 const DARK_MODE_KEY = 'darkMode';
 const LINK_AMOUNT_KEY = 'linkAmount';
+const OPEN_GROUP_KEY = 'openGroup';
+const OPEN_TAG_KEY = 'openTag';
 const MIN_LINK_AMOUNT = 1;
 const MAX_LINK_AMOUNT = 10;
 const DEFAULT_GROUP = 'Main';
@@ -327,6 +329,27 @@ function flattenLinks(store) {
   return links;
 }
 
+function flattenGroupLinks(group) {
+  const links = group.links.slice();
+  for (const subgroup of group.subgroups) links.push(...subgroup.links);
+  return links;
+}
+
+function listOpenGroups(store) {
+  return store.groups.filter((group) => !isReservedGroupName(group.name) && groupHasLinks(group));
+}
+
+function filterOpenLinks(store, groupName, tagNames) {
+  const groups = groupName
+    ? store.groups.filter((group) => group.name === groupName && !isReservedGroupName(group.name))
+    : listOpenGroups(store);
+  const links = [];
+  for (const group of groups) links.push(...flattenGroupLinks(group));
+  const selected = Array.isArray(tagNames) ? tagNames.filter(Boolean) : (tagNames ? [tagNames] : []);
+  if (selected.length === 0) return links;
+  return links.filter((link) => selected.some((tag) => link.tags.includes(tag)));
+}
+
 function flattenUrls(store) {
   return flattenLinks(store).map((link) => link.url);
 }
@@ -489,6 +512,24 @@ function countGroupLinks(group) {
   return group.links.length + group.subgroups.reduce((sum, subgroup) => sum + subgroup.links.length, 0);
 }
 
+function createSelectCaret() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'tag-select-caret');
+  svg.setAttribute('viewBox', '0 0 12 12');
+  svg.setAttribute('width', '10');
+  svg.setAttribute('height', '10');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M2.5 4.5L6 8l3.5-3.5');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-width', '1.5');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(path);
+  return svg;
+}
+
 function createTagRemoveIcon() {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 12 12');
@@ -508,13 +549,16 @@ function createTagRemoveIcon() {
 function createTagChip(tag, onRemove) {
   const entry = typeof tag === 'string' ? { name: tag } : tag;
   const chip = document.createElement('span');
-  chip.className = 'tag-chip';
+  chip.className = onRemove ? 'tag-chip' : 'tag-chip tag-chip-static';
   if (entry.colorLight) chip.style.setProperty('--tag-chip-light', entry.colorLight);
   if (entry.colorDark) chip.style.setProperty('--tag-chip-dark', entry.colorDark);
 
   const name = document.createElement('span');
   name.className = 'tag-chip-name';
   name.textContent = entry.name;
+  chip.appendChild(name);
+
+  if (typeof onRemove !== 'function') return chip;
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
@@ -526,8 +570,6 @@ function createTagChip(tag, onRemove) {
     e.stopPropagation();
     onRemove(entry.name);
   });
-
-  chip.appendChild(name);
   chip.appendChild(removeBtn);
   return chip;
 }
@@ -720,6 +762,59 @@ function saveLinkAmount(amount) {
   localStorage.setItem(LINK_AMOUNT_KEY, String(amount));
 }
 
+function getOpenGroup() {
+  return localStorage.getItem(OPEN_GROUP_KEY) || '';
+}
+
+function saveOpenGroup(name) {
+  if (name) localStorage.setItem(OPEN_GROUP_KEY, name);
+  else localStorage.removeItem(OPEN_GROUP_KEY);
+}
+
+function normalizeOpenTags(value) {
+  if (Array.isArray(value)) return value.map(normalizeTag).filter(Boolean);
+  if (typeof value !== 'string' || !value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed.map(normalizeTag).filter(Boolean);
+  } catch {
+    /* legacy single tag */
+  }
+  const single = normalizeTag(value);
+  return single ? [single] : [];
+}
+
+function getOpenTags() {
+  return normalizeOpenTags(localStorage.getItem(OPEN_TAG_KEY));
+}
+
+function saveOpenTags(names) {
+  const tags = [...new Set(normalizeOpenTags(names))];
+  if (tags.length > 0) localStorage.setItem(OPEN_TAG_KEY, JSON.stringify(tags));
+  else localStorage.removeItem(OPEN_TAG_KEY);
+}
+
+function sameTagList(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function fillSelect(select, values, selected) {
+  const current = values.includes(selected) ? selected : '';
+  select.innerHTML = '';
+  const all = document.createElement('option');
+  all.value = '';
+  all.textContent = 'All';
+  select.appendChild(all);
+  values.forEach((value) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+  select.value = current;
+  return current;
+}
+
 function pickRandomLinks(list, count) {
   const n = Math.min(count, list.length);
   const remaining = list.slice();
@@ -736,6 +831,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const optionsToggle = document.getElementById('options-toggle');
   const optionsPanel = document.getElementById('options-panel');
   const linkAmountInput = document.getElementById('link-amount');
+  const openGroupSelect = document.getElementById('open-group');
+  const openTagSelect = document.getElementById('open-tag');
+  const openTagToggle = document.getElementById('open-tag-toggle');
+  const openTagMenu = document.getElementById('open-tag-menu');
   const addLinkButton = document.getElementById('add-link-button');
   const linkInput = document.getElementById('link-input');
   const linkGroupInput = document.getElementById('link-group');
@@ -761,8 +860,122 @@ document.addEventListener('DOMContentLoaded', () => {
 
   applyLinkAmount(getLinkAmount());
 
+  const setOpenTagMenuOpen = (open) => {
+    openTagMenu.hidden = !open;
+    openTagToggle.setAttribute('aria-expanded', String(open));
+  };
+
+  const selectedOpenTags = () => normalizeOpenTags(openTagSelect.value);
+
+  const renderOpenTagToggle = (tags, selected) => {
+    openTagToggle.innerHTML = '';
+    const value = document.createElement('span');
+    value.className = 'tag-select-value';
+    const entries = tags.filter((tag) => selected.includes(tag.name));
+    if (entries.length > 0) {
+      entries.forEach((tag) => value.appendChild(createTagChip(tag)));
+    } else {
+      value.textContent = 'All';
+    }
+    openTagToggle.appendChild(value);
+    openTagToggle.appendChild(createSelectCaret());
+  };
+
+  const syncTagOptionState = (selected) => {
+    [...openTagMenu.children].forEach((item) => {
+      const value = item.dataset.value;
+      const isSelected = value ? selected.includes(value) : selected.length === 0;
+      item.setAttribute('aria-selected', String(isSelected));
+    });
+  };
+
+  const applyOpenTags = (tags, selected) => {
+    const current = selected.filter((name) => tags.some((tag) => tag.name === name));
+    openTagSelect.value = JSON.stringify(current);
+    saveOpenTags(current);
+    renderOpenTagToggle(tags, current);
+    syncTagOptionState(current);
+    return current;
+  };
+
+  const fillTagSelect = (tags, selected) => {
+    const current = selected.filter((name) => tags.some((tag) => tag.name === name));
+    openTagMenu.innerHTML = '';
+
+    const addOption = (value, content) => {
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'tag-select-option';
+      option.dataset.value = value;
+      option.setAttribute('role', 'option');
+      if (typeof content === 'string') option.textContent = content;
+      else option.appendChild(content);
+      option.addEventListener('click', () => {
+        if (!value) {
+          applyOpenTags(tags, []);
+          setOpenTagMenuOpen(false);
+          openTagToggle.focus();
+          return;
+        }
+        const next = selectedOpenTags();
+        const index = next.indexOf(value);
+        if (index >= 0) next.splice(index, 1);
+        else next.push(value);
+        applyOpenTags(tags, next);
+      });
+      openTagMenu.appendChild(option);
+    };
+
+    addOption('', 'All');
+    tags.forEach((tag) => addOption(tag.name, createTagChip(tag)));
+    return applyOpenTags(tags, current);
+  };
+
+  const refreshOpenFilters = () => {
+    const store = getStore();
+    const group = fillSelect(
+      openGroupSelect,
+      listOpenGroups(store).map((item) => item.name),
+      getOpenGroup()
+    );
+    if (group !== getOpenGroup()) saveOpenGroup(group);
+    const tags = fillTagSelect(store.tags, getOpenTags());
+    if (!sameTagList(tags, getOpenTags())) saveOpenTags(tags);
+    if (openTagMenu.hidden === false && store.tags.length === 0) {
+      setOpenTagMenuOpen(false);
+    }
+  };
+
+  openGroupSelect.addEventListener('change', () => {
+    saveOpenGroup(openGroupSelect.value);
+  });
+
+  openTagToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpenTagMenuOpen(openTagMenu.hidden);
+  });
+
+  openTagMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    if (!openTagMenu.hidden) setOpenTagMenuOpen(false);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !openTagMenu.hidden) {
+      setOpenTagMenuOpen(false);
+      openTagToggle.focus();
+    }
+  });
+
   bindDisclosure(optionsToggle, optionsPanel);
   bindDisclosure(linkInfoToggle, linkInfoPanel);
+
+  optionsToggle.addEventListener('click', () => {
+    if (optionsPanel.hidden) setOpenTagMenuOpen(false);
+  });
 
   linkAmountInput.addEventListener('change', () => {
     applyLinkAmount(linkAmountInput.value);
@@ -772,6 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLinkList(linkList, refreshCollection);
     restoreListInfo(getLinks());
     refreshGroupSuggestions();
+    refreshOpenFilters();
   };
 
   refreshCollection();
@@ -903,9 +1117,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   openRandomLinkButton.addEventListener('click', () => {
-    const list = getLinks();
-    if (list.length === 0) {
+    const store = getStore();
+    const allLinks = flattenUrls(store);
+    if (allLinks.length === 0) {
       setListInfo('No links saved');
+      return;
+    }
+    const groupName = openGroupSelect.value;
+    const tagNames = selectedOpenTags();
+    const list = filterOpenLinks(store, groupName, tagNames).map((link) => link.url);
+    if (list.length === 0) {
+      setListInfo('No matching links');
       return;
     }
     const amount = applyLinkAmount(linkAmountInput.value);
