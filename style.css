@@ -16,6 +16,8 @@ html {
   --divider: #eee;
   --icon: #555;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --tag-bg: #33ae91;
+  --tag-text: #e4fffd;
   background-color: #e4f6e9;
   background-image: linear-gradient(165deg, #dafaf0 0%, #c0d5f5 100%);
   background-attachment: fixed;
@@ -35,6 +37,8 @@ html.dark {
   --divider: #404040;
   --icon: #ccc;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --tag-bg: #5fccb6;
+  --tag-text: #042421;
   background-color: #1a2c22;
   background-image: linear-gradient(165deg, #0f342c 0%, #0a1230 100%);
 }
@@ -245,11 +249,93 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   text-align: right;
 }
 
-#add-link-button {
+#add-link-button,
+.options-add-button {
   width: 80px;
   flex-shrink: 0;
   padding-left: 0;
   padding-right: 0;
+}
+
+button.options-add-button {
+  min-height: 36px;
+  font-size: 14px;
+}
+
+.tag-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-inset);
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 4px 3px 8px;
+  border-radius: 6px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tag-chip-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+button.tag-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+}
+
+button.tag-chip-remove:hover {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.tag-chip-remove svg {
+  display: block;
+}
+
+.tag-field[hidden] {
+  display: none;
+}
+
+.tag-editor-error {
+  margin: 0;
+  color: #c00;
+  font-size: 12px;
+}
+
+.tag-editor-error:empty {
+  display: none;
+}
+
+html.dark .tag-editor-error {
+  color: #f08080;
 }
 
 .options-row input {
@@ -269,10 +355,18 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
 }
 
 .options-row input[type="text"] {
-  width: 120px;
   padding-left: 10px;
   padding-right: 10px;
   text-align: left;
+}
+
+#link-group,
+#link-name {
+  width: 210px;
+}
+
+#tag-input {
+  width: 120px;
 }
 
 .add-link {
@@ -355,6 +449,23 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   font-size: 13px;
 }
 
+.tree-link-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tree-link-main .link-url {
+  min-height: 28px;
+}
+
+#link-list .tree-tag-field {
+  padding: 8px 4px 10px 6px;
+  border-top: 1px solid var(--divider);
+}
+
 button.tree-toggle {
   display: flex;
   align-items: center;
@@ -417,7 +528,7 @@ button.tree-toggle[aria-expanded="true"] .tree-arrow {
 }
 
 html.dark #link-list .link-url {
-  color: #6eb3f7;
+  color: #85d5f7;
 }
 
 #link-list .link-url:hover {
