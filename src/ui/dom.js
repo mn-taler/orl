@@ -64,6 +64,85 @@ export function createSelectCaret() {
   }, path);
 }
 
+export function createEditIcon() {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-width', '1.75');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  return svgIcon({
+    viewBox: '0 0 24 24',
+    width: '14',
+    height: '14',
+    'aria-hidden': 'true',
+  }, path);
+}
+
+export function createTrashIcon(size = 14) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-width', '1.75');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  return svgIcon({
+    viewBox: '0 0 24 24',
+    width: String(size),
+    height: String(size),
+    'aria-hidden': 'true',
+  }, path);
+}
+
+export function createPlusIcon() {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M12 5v14M5 12h14');
+  return svgIcon({
+    class: 'tree-add-plus',
+    viewBox: '0 0 24 24',
+    width: '14',
+    height: '14',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '2.5',
+    'stroke-linecap': 'round',
+    'aria-hidden': 'true',
+  }, path);
+}
+
+export function createCloseIcon() {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M18 6L6 18M6 6l12 12');
+  return svgIcon({
+    viewBox: '0 0 24 24',
+    width: '16',
+    height: '16',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '2.5',
+    'stroke-linecap': 'round',
+    'aria-hidden': 'true',
+  }, path);
+}
+
+export function createCheckIcon() {
+  const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  polyline.setAttribute('points', '20 6 9 17 4 12');
+  return svgIcon({
+    viewBox: '0 0 24 24',
+    width: '16',
+    height: '16',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '2.5',
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    'aria-hidden': 'true',
+  }, polyline);
+}
+
 export function createTagRemoveIcon() {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M2 2l8 8M10 2L2 10');

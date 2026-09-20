@@ -114,10 +114,7 @@ export function pruneStore(store) {
   for (const group of store.groups) {
     group.subgroups = group.subgroups.filter((subgroup) => subgroup.links.length > 0);
   }
-  store.groups = store.groups.filter((group) => (
-    !isReservedGroupName(group.name) &&
-    (group.name === DEFAULT_GROUP || group.links.length > 0 || group.subgroups.length > 0)
-  ));
+  store.groups = store.groups.filter((group) => !isReservedGroupName(group.name));
   if (!store.groups.some((group) => group.name === DEFAULT_GROUP)) {
     store.groups.unshift({ name: DEFAULT_GROUP, links: [], subgroups: [] });
   } else {

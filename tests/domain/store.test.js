@@ -54,13 +54,13 @@ describe('normalizeStore', () => {
 });
 
 describe('pruneStore / serializeStore', () => {
-  it('should move a reserved Tags group into Main and drop empty extras', () => {
+  it('should move a reserved Tags group into Main and keep empty extras', () => {
     const store = makeStore([
       makeGroup('Work'),
       makeGroup('Tags', [makeLink('https://a.example')]),
     ]);
     pruneStore(store);
-    expect(store.groups.map((group) => group.name)).toEqual(['Main']);
+    expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Work']);
     expect(store.groups[0].links[0].url).toBe('https://a.example');
   });
 

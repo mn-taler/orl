@@ -1,9 +1,8 @@
 import { getLinks } from './domain/store.js';
-import { renderCollection, refreshGroupSuggestions } from './ui/collection.js';
-import { initEditor } from './ui/editor.js';
+import { renderCollection } from './ui/collection.js';
 import { initOpenOptions } from './ui/open-options.js';
 import { initSettings } from './ui/settings.js';
-import { initTagsPanel } from './ui/tags-panel.js';
+import { initTagsPanel } from './ui/tags-panel.js?v=addtag3';
 import { restoreListInfo, setStatus } from './ui/status.js';
 
 function boot() {
@@ -15,17 +14,11 @@ function boot() {
     refreshAll: () => refreshAll(),
     setStatus,
   });
-  const editor = initEditor({
-    refreshAll: () => refreshAll(),
-    setStatus,
-  });
 
   refreshAll = () => {
     renderCollection(linkList, refreshAll);
     restoreListInfo(getLinks());
-    refreshGroupSuggestions();
     tagsPanel.refresh();
-    editor.refresh();
     openOptions.refresh();
   };
 

@@ -12,9 +12,35 @@ export function bindTagMultiSelect({
   let catalog = [];
   let selected = [];
 
+  const overflowParent = (el) => {
+    let node = el.parentElement;
+    while (node && node !== document.documentElement) {
+      const overflowY = getComputedStyle(node).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') return node;
+      node = node.parentElement;
+    }
+    return document.documentElement;
+  };
+
+  const positionMenu = () => {
+    menu.classList.remove('is-up');
+    menu.style.maxHeight = '';
+    if (menu.hidden) return;
+    toggle.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const toggleRect = toggle.getBoundingClientRect();
+    const bounds = overflowParent(toggle).getBoundingClientRect();
+    const gap = 4;
+    const spaceAbove = Math.max(0, toggleRect.top - bounds.top - gap);
+    const spaceBelow = Math.max(0, bounds.bottom - toggleRect.bottom - gap);
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    menu.classList.toggle('is-up', openUp);
+    menu.style.maxHeight = `${Math.max(80, Math.min(280, openUp ? spaceAbove : spaceBelow))}px`;
+  };
+
   const setMenuOpen = (open) => {
     menu.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
+    positionMenu();
   };
 
   const renderToggle = () => {

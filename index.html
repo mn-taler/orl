@@ -8,7 +8,7 @@
   <link rel="icon" href="icons/icon128.png" type="image/png" sizes="128x128">
   <meta name="theme-color" content="#1a2c22">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/main.css?v=addtag4">
   <script src="src/theme-boot.js"></script>
 </head>
 <body>
@@ -39,73 +39,42 @@
       <p id="settings-status" class="section-status" aria-live="polite" hidden></p>
       <p>Open random links from your personal link collection.</p>
       <section class="glass-panel open-section">
-        <button type="button" id="open-button" aria-live="polite">OPEN</button>
-        <section class="options-section">
+        <h2>OPEN LINKS</h2>
+        <div class="open-actions">
+          <button type="button" id="open-button" aria-live="polite" aria-label="OPEN">
+            <img src="icons/icon128.png" alt="" class="open-button-icon" width="22" height="22" />
+            <span class="open-button-label" hidden></span>
+          </button>
           <button type="button" id="options-toggle" class="options-toggle" aria-expanded="false" aria-controls="options-panel">
             <svg class="options-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
             <span>Options</span>
           </button>
-          <div id="options-panel" class="options-panel" hidden>
-            <label class="options-row" for="link-amount">
-              <span class="options-row-label">Amount of links</span>
-              <span class="options-row-hint">select 1-10</span>
-              <input type="number" id="link-amount" min="1" max="10" step="1" value="1" inputmode="numeric" aria-label="Amount of links" />
-            </label>
-            <label class="options-row" for="open-group">
-              <span class="options-row-label">Group</span>
-              <select id="open-group" aria-label="Group to open from">
-                <option value="">All</option>
-              </select>
-            </label>
-            <div class="options-row">
-              <span class="options-row-label" id="open-tag-label">Tags</span>
-              <div class="tag-select">
-                <input type="hidden" id="open-tag" value="" />
-                <button type="button" id="open-tag-toggle" class="tag-select-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="open-tag-menu" aria-labelledby="open-tag-label">
-                  All
-                </button>
-                <div id="open-tag-menu" class="tag-select-menu" role="listbox" aria-multiselectable="true" hidden></div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <section class="glass-panel add-section">
-        <div class="add-link">
-          <input type="url" id="link-input" placeholder="https://…" />
-          <button type="button" id="add-link-button" aria-live="polite">ADD</button>
         </div>
-        <section class="options-section">
-          <button type="button" id="link-info-toggle" class="options-toggle" aria-expanded="false" aria-controls="link-info-panel">
-            <svg class="options-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <span>Details</span>
-          </button>
-          <div id="link-info-panel" class="options-panel" hidden>
-            <label class="options-row" for="link-group">
-              <span class="options-row-label">Group</span>
-              <input type="text" id="link-group" list="group-suggestions" placeholder="Main" autocomplete="off" />
-            </label>
-            <label class="options-row" for="link-name">
-              <span class="options-row-label">Name</span>
-              <input type="text" id="link-name" placeholder="Name" autocomplete="off" />
-            </label>
-            <div class="options-row">
-              <span class="options-row-label" id="draft-tag-label">Tags</span>
-              <div class="tag-select">
-                <button type="button" id="draft-tag-toggle" class="tag-select-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="draft-tag-menu" aria-labelledby="draft-tag-label">
-                  None
-                </button>
-                <div id="draft-tag-menu" class="tag-select-menu" role="listbox" aria-multiselectable="true" hidden></div>
-              </div>
+        <div id="options-panel" class="options-panel" hidden>
+          <label class="options-row" for="link-amount">
+            <span class="options-row-label">Amount of links</span>
+            <span class="options-row-hint">select 1-10</span>
+            <input type="number" id="link-amount" min="1" max="10" step="1" value="1" inputmode="numeric" aria-label="Amount of links" />
+          </label>
+          <label class="options-row" for="open-group">
+            <span class="options-row-label">Group</span>
+            <select id="open-group" aria-label="Group to open from">
+              <option value="">All</option>
+            </select>
+          </label>
+          <div class="options-row">
+            <span class="options-row-label" id="open-tag-label">Tags</span>
+            <div class="tag-select">
+              <input type="hidden" id="open-tag" value="" />
+              <button type="button" id="open-tag-toggle" class="tag-select-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="open-tag-menu" aria-labelledby="open-tag-label">
+                All
+              </button>
+              <div id="open-tag-menu" class="tag-select-menu" role="listbox" aria-multiselectable="true" hidden></div>
             </div>
-            <datalist id="group-suggestions"></datalist>
           </div>
-        </section>
+        </div>
       </section>
 
       <section class="glass-panel link-collection-section">
@@ -114,6 +83,7 @@
           <p id="list-info" class="section-status list-info" aria-live="polite">No links saved yet.</p>
         </div>
         <ul id="link-list"></ul>
+        <div id="collection-add"></div>
       </section>
 
       <section class="glass-panel tags-section">
@@ -121,23 +91,15 @@
           <h2>TAGS</h2>
         </button>
         <div id="tags-panel" hidden>
+          <p id="tags-status" class="section-status" aria-live="polite" hidden></p>
           <div id="global-tag-list" hidden></div>
-          <div class="tag-add-row">
-            <input type="text" id="global-tag-input" maxlength="128" placeholder="Tag name" autocomplete="off" spellcheck="false" aria-label="New tag" />
-            <div class="tag-palette-select">
-              <button type="button" id="tag-palette-toggle" class="tag-palette-toggle" aria-label="Tag color" aria-haspopup="listbox" aria-expanded="false" aria-controls="tag-palette">
-                <span class="tag-palette-label">Color</span>
-              </button>
-              <div id="tag-palette" class="tag-palette-menu" role="listbox" aria-label="Tag color" hidden></div>
-            </div>
-            <button type="button" id="global-tag-add" aria-live="polite">ADD</button>
-          </div>
+          <div id="tags-add"></div>
         </div>
       </section>
 
       <input type="file" id="import-file" accept=".json,application/json" hidden />
     </div>
   </div>
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js?v=addtag3"></script>
 </body>
 </html>

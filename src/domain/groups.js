@@ -1,5 +1,5 @@
-import { DEFAULT_GROUP, MAX_GROUP_NAME_LENGTH, MAX_GROUPS, TAGS_GROUP } from '../config.js';
-import { mergeLinkIntoList, normalizeLinkEntry } from './links.js';
+import { DEFAULT_GROUP, MAX_GROUP_NAME_LENGTH, MAX_GROUPS, MAX_LINKS, TAGS_GROUP } from '../config.js';
+import { linkHasMeta, mergeLinkIntoList, normalizeLinkEntry } from './links.js';
 
 export function isReservedGroupName(name) {
   return (name || '').trim().toLowerCase() === TAGS_GROUP.toLowerCase();
@@ -59,6 +59,25 @@ export function findOrCreateGroup(store, name) {
   const group = { name: groupName, links: [], subgroups: [] };
   store.groups.push(group);
   return group;
+}
+
+export function findGroup(store, name) {
+  const groupName = normalizeGroupName(name);
+  return store.groups.find((item) => item.name === groupName)
+    || store.groups.find((item) => item.name === DEFAULT_GROUP)
+    || store.groups[0];
+}
+
+export function createGroup(store, name) {
+  const groupName = (name || '').trim().slice(0, MAX_GROUP_NAME_LENGTH);
+  if (!groupName) return { error: 'Please enter a group name' };
+  if (isReservedGroupName(groupName)) return { error: 'This name is reserved' };
+  const exists = store.groups.some((item) => item.name.toLowerCase() === groupName.toLowerCase());
+  if (exists) return { error: 'Group already exists' };
+  if (store.groups.length >= MAX_GROUPS) return { error: 'Too many groups' };
+  const group = { name: groupName, links: [], subgroups: [] };
+  store.groups.push(group);
+  return { group };
 }
 
 export function flattenLinks(store) {
@@ -128,4 +147,91 @@ export function removeLinkFromStore(store, url) {
       subgroup.links = subgroup.links.filter((item) => item.url !== url);
     }
   }
+}
+
+export function deleteLinkFromStore(store, url) {
+  const found = findLinkInStore(store, url);
+  if (!found) return { error: 'Link not found' };
+  removeLinkFromStore(store, url);
+  return { link: found.link, group: found.group };
+}
+
+export function renameGroup(store, currentName, nextName) {
+  const current = (currentName || '').trim();
+  const group = store.groups.find((item) => item.name === current && !isReservedGroupName(item.name));
+  if (!group) return { error: 'Group not found' };
+
+  const groupName = (nextName || '').trim().slice(0, MAX_GROUP_NAME_LENGTH);
+  if (!groupName) return { error: 'Please enter a group name' };
+  if (isReservedGroupName(groupName)) return { error: 'This name is reserved' };
+  const exists = store.groups.some((item) => (
+    item !== group && item.name.toLowerCase() === groupName.toLowerCase()
+  ));
+  if (exists) return { error: 'Group already exists' };
+
+  group.name = groupName;
+  return { group };
+}
+
+export function removeGroupFromStore(store, name) {
+  const current = (name || '').trim();
+  const index = store.groups.findIndex((item) => (
+    item.name === current && !isReservedGroupName(item.name)
+  ));
+  if (index < 0) return { error: 'Group not found' };
+  const [group] = store.groups.splice(index, 1);
+  return { group };
+}
+
+export function addLinkToStore(store, draft) {
+  const incoming = normalizeLinkEntry({
+    url: draft?.url,
+    name: draft?.name,
+    tags: draft?.tags,
+  });
+  if (!incoming) return { error: 'Please enter a valid URL' };
+
+  const existing = findLinkInStore(store, incoming.url);
+  if (existing) {
+    if (!linkHasMeta(existing.link) && linkHasMeta(incoming)) {
+      existing.link.name = incoming.name;
+      existing.link.tags = incoming.tags.slice();
+      return { link: existing.link, group: existing.group, updated: true };
+    }
+    return { error: 'Link is already saved' };
+  }
+  if (flattenLinks(store).length >= MAX_LINKS) return { error: 'Collection is full' };
+
+  const group = findGroup(store, draft?.group);
+  if (!group) return { error: 'Group not found' };
+  group.links.push(incoming);
+  return { link: incoming, group };
+}
+
+export function updateLinkInStore(store, originalUrl, draft) {
+  const found = findLinkInStore(store, originalUrl);
+  if (!found) return { error: 'Link not found' };
+  const incoming = normalizeLinkEntry({
+    url: draft?.url,
+    name: draft?.name,
+    tags: draft?.tags,
+  });
+  if (!incoming) return { error: 'Please enter a valid URL' };
+  if (incoming.url !== originalUrl && findLinkInStore(store, incoming.url)) {
+    return { error: 'Link is already saved' };
+  }
+
+  const targetName = normalizeGroupName(draft?.group);
+  found.link.url = incoming.url;
+  found.link.name = incoming.name;
+  found.link.tags = incoming.tags.slice();
+
+  if (found.group.name === targetName) {
+    return { link: found.link, group: found.group };
+  }
+
+  removeLinkFromStore(store, incoming.url);
+  const group = findOrCreateGroup(store, targetName);
+  group.links.push(found.link);
+  return { link: found.link, group };
 }

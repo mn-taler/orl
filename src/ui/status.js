@@ -7,12 +7,11 @@ const STATUS_DURATION_MS = 3000;
 const SECTION_IDS = {
   collection: 'list-info',
   settings: 'settings-status',
+  tags: 'tags-status',
 };
 
 const BUTTON_SECTIONS = {
   open: { id: 'open-button', label: 'OPEN' },
-  add: { id: 'add-link-button', label: 'ADD' },
-  tags: { id: 'global-tag-add', label: 'ADD' },
 };
 
 const TONES = new Set(['success', 'error', 'info']);
@@ -27,11 +26,25 @@ function applyTone(el, tone) {
   el.classList.add(`is-${TONES.has(tone) ? tone : 'info'}`);
 }
 
+function buttonParts(button) {
+  return {
+    icon: button.querySelector('.open-button-icon'),
+    label: button.querySelector('.open-button-label'),
+  };
+}
+
 function restoreButton(section) {
   const spec = BUTTON_SECTIONS[section];
   const button = document.getElementById(spec.id);
   if (!button) return;
-  button.textContent = spec.label;
+  const { icon, label } = buttonParts(button);
+  if (icon && label) {
+    icon.hidden = false;
+    label.hidden = true;
+    label.textContent = '';
+  } else {
+    button.textContent = spec.label;
+  }
   button.classList.remove('is-success', 'is-error', 'is-info');
 }
 
@@ -47,7 +60,14 @@ function setButtonStatus(section, message, tone) {
     restoreButton(section);
     return;
   }
-  button.textContent = message;
+  const { icon, label } = buttonParts(button);
+  if (icon && label) {
+    icon.hidden = true;
+    label.hidden = false;
+    label.textContent = message;
+  } else {
+    button.textContent = message;
+  }
   applyTone(button, tone);
   timeouts[section] = setTimeout(() => {
     timeouts[section] = null;

@@ -79,9 +79,10 @@ button.options-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   width: fit-content;
   padding: 2px;
-  min-height: 28px;
+  min-height: 48px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -139,14 +140,6 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   text-align: right;
 }
 
-#add-link-button,
-#global-tag-add {
-  width: 152px;
-  flex-shrink: 0;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
 .options-add-button {
   width: 80px;
   flex-shrink: 0;
@@ -154,24 +147,17 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   padding-right: 0;
 }
 
-#open-button.is-error,
-#add-link-button.is-error,
-#global-tag-add.is-error {
+#open-button.is-error {
   color: var(--status-error);
 }
 
-#open-button.is-success,
-#add-link-button.is-success,
-#global-tag-add.is-success {
+#open-button.is-success {
   color: var(--status-success);
 }
 
-#add-link-button.is-error,
-#add-link-button.is-success,
-#add-link-button.is-info,
-#global-tag-add.is-error,
-#global-tag-add.is-success,
-#global-tag-add.is-info {
+#open-button.is-error,
+#open-button.is-success,
+#open-button.is-info {
   font-size: 13px;
   line-height: 1.2;
   white-space: normal;
@@ -207,50 +193,23 @@ button.options-add-button {
   overscroll-behavior: contain;
 }
 
-.tag-add-row {
-  position: relative;
-  display: flex;
-  gap: 10px;
+#tags-status {
+  margin: 0;
+  text-align: right;
 }
 
-.tag-add-row input {
-  flex: 1;
-  min-width: 0;
-  padding: 12px 14px;
-  min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 400;
-  background: var(--surface);
-  color: var(--input-text);
+#tags-add {
+  flex-shrink: 0;
 }
 
 .tag-palette-select {
+  position: relative;
   flex-shrink: 0;
-}
-
-button.tag-palette-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: auto;
-  min-height: 48px;
-  padding: 0 12px;
-}
-
-.tag-palette-label {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-muted);
 }
 
 .tag-palette-menu {
   position: absolute;
   bottom: calc(100% + 4px);
-  left: 0;
   right: 0;
   z-index: 12;
   display: flex;
@@ -284,6 +243,10 @@ html.dark .tag-palette-swatch {
 
 button.tag-palette-swatch[aria-selected="true"] {
   border-color: var(--text);
+}
+
+.tag-chip[hidden] {
+  display: none;
 }
 
 .tag-chip {
@@ -459,6 +422,11 @@ button.tag-select-toggle:hover {
   box-shadow: var(--shadow);
 }
 
+.tag-select-menu.is-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
 .tag-select-menu[hidden] {
   display: none;
 }
@@ -491,15 +459,30 @@ button.tag-select-option[aria-selected="true"] {
   text-align: center;
 }
 
-.options-row input[type="text"] {
+.options-row input[type="text"],
+.options-row input[type="url"] {
   padding-left: 10px;
   padding-right: 10px;
   text-align: left;
 }
 
-#link-info-panel .options-row input[type="text"],
-#link-info-panel .tag-select {
+.tree-link-editor .options-row input[type="text"],
+.tree-link-editor .options-row input[type="url"],
+.tree-link-editor .options-row select,
+.tree-link-editor .tag-select,
+.tree-link-editor .tag-palette-select {
   width: 210px;
+}
+
+.tree-link-editor .options-row input[type="url"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-link-editor .tag-select-menu {
+  min-width: 0;
+  width: max-content;
+  max-width: none;
 }
 
 #link-list {
@@ -517,11 +500,6 @@ button.tag-select-option[aria-selected="true"] {
   display: block;
   padding: 0;
   min-height: 0;
-  border-bottom: 1px solid var(--divider);
-}
-
-#link-list .tree-node:last-child {
-  border-bottom: none;
 }
 
 #link-list .tree-children {
@@ -534,9 +512,12 @@ button.tag-select-option[aria-selected="true"] {
   display: none;
 }
 
-#link-list .tree-link {
+#link-list .tree-link,
+#collection-add .tree-link,
+#tags-add .tree-link {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
   padding: 4px 0;
   min-height: 0;
@@ -544,16 +525,144 @@ button.tag-select-option[aria-selected="true"] {
 }
 
 .tree-link-frame {
-  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   padding: 0 6px 0 12px;
   min-height: 40px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--glass-well);
+}
+
+.tree-link-editor-frame {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+  background: color-mix(in srgb, var(--surface) 50%, transparent);
+}
+
+.tree-link-action-bar {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  width: 100%;
+  min-height: 40px;
+  border-top: 1px solid var(--divider);
+  border-radius: 0 0 10px 10px;
+  background: var(--surface);
+}
+
+.tree-link-action-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 6px 0 12px;
+  min-height: 40px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.tree-link-action-bar button:hover {
+  background: var(--surface-hover);
+}
+
+#link-list button.tree-link-bar-cancel,
+#collection-add button.tree-link-bar-cancel,
+#tags-add button.tree-link-bar-cancel {
+  border-right: 1px solid var(--divider);
+  border-radius: 0 0 0 10px;
+  color: var(--status-cancel, #c56d6d);
+}
+
+html.dark #link-list button.tree-link-bar-cancel,
+html.dark #collection-add button.tree-link-bar-cancel,
+html.dark #tags-add button.tree-link-bar-cancel {
+  color: var(--status-cancel, #e3a3a3);
+}
+
+#link-list button.tree-link-bar-save,
+#collection-add button.tree-link-bar-save,
+#tags-add button.tree-link-bar-save {
+  border-radius: 0 0 10px 0;
+  color: var(--status-success);
+}
+
+#link-list button.tree-link-bar-delete,
+#collection-add button.tree-link-bar-delete,
+#tags-add button.tree-link-bar-delete {
+  border-radius: 0 0 10px 0;
+  color: var(--status-delete, #c4334d);
+}
+
+html.dark #link-list button.tree-link-bar-delete,
+html.dark #collection-add button.tree-link-bar-delete,
+html.dark #tags-add button.tree-link-bar-delete {
+  color: var(--status-delete, #e45a9a);
+}
+
+#link-list .tree-link-confirm-bar button.tree-link-bar-cancel,
+#collection-add .tree-link-confirm-bar button.tree-link-bar-cancel,
+#tags-add .tree-link-confirm-bar button.tree-link-bar-cancel {
+  border-radius: 10px 0 0 10px;
+}
+
+#link-list .tree-link-confirm-bar button.tree-link-bar-delete,
+#collection-add .tree-link-confirm-bar button.tree-link-bar-delete,
+#tags-add .tree-link-confirm-bar button.tree-link-bar-delete {
+  border-radius: 0 10px 10px 0;
+}
+
+.tree-link-update-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.tree-link-editor-frame .tree-link-editor {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.tree-link-tags {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.tree-link-tags .tag-chip {
+  flex-shrink: 0;
+}
+
+.tree-link-tags .tag-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-link-tags-more {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 #link-list .tree-tag-field {
@@ -566,6 +675,21 @@ button.tag-select-option[aria-selected="true"] {
   border: none;
   border-radius: 0;
   background: transparent;
+}
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding-right: 6px;
+}
+
+.tree-node-row .tree-toggle {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  padding-right: 8px;
 }
 
 button.tree-toggle {
@@ -587,6 +711,48 @@ button.tree-toggle {
 
 button.tree-toggle:hover {
   background: var(--surface-hover);
+}
+
+#link-list .tree-add,
+#collection-add .tree-add,
+#tags-add .tree-add {
+  display: block;
+  padding: 0;
+  min-height: 0;
+}
+
+#collection-add {
+  flex-shrink: 0;
+}
+
+#link-list .tree-node > .tree-add,
+#link-list .tree-node > .tree-add-editor {
+  margin: 0 2px 4px 18px;
+}
+
+button.tree-add-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  min-height: 44px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+}
+
+button.tree-add-group:hover {
+  background: var(--surface-hover);
+}
+
+.tree-add-plus {
+  flex-shrink: 0;
 }
 
 .tree-arrow {
@@ -623,6 +789,13 @@ button.tags-toggle:hover {
   min-width: 0;
 }
 
+.tree-toggle .tree-label {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .tree-count {
   flex-shrink: 0;
   color: var(--text-subtle);
@@ -630,13 +803,13 @@ button.tags-toggle:hover {
   font-weight: 500;
 }
 
-#link-list .tree-node-sub {
-  border-bottom: none;
-  border-top: 1px solid var(--divider);
+.tree-link-confirm-bar {
+  border-top: none;
+  border-radius: 10px;
 }
 
 #link-list .link-url {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   min-height: 40px;
   display: flex;
@@ -657,7 +830,7 @@ html.dark #link-list .link-url {
   text-decoration: underline;
 }
 
-#link-list .remove-link {
+#link-list .tree-link-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -669,24 +842,20 @@ html.dark #link-list .link-url {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #c00;
+  color: var(--icon);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-html.dark #link-list .remove-link {
-  color: #f08080;
+#link-list .tree-link-save {
+  color: var(--status-success);
 }
 
-#link-list .remove-link:hover {
-  background: rgba(204, 0, 0, 0.12);
+#link-list .tree-link-action:hover {
+  background: var(--surface-hover);
 }
 
-html.dark #link-list .remove-link:hover {
-  background: rgba(240, 128, 128, 0.16);
-}
-
-#link-list .remove-link svg {
+#link-list .tree-link-action svg {
   display: block;
 }
 

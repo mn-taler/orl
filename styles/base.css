@@ -39,12 +39,6 @@ input::placeholder {
   opacity: 1;
 }
 
-#link-input::placeholder,
-#global-tag-input::placeholder {
-  font-size: 13px;
-  font-weight: 400;
-}
-
 button {
   padding: 12px 20px;
   min-height: 48px;

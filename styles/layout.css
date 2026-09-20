@@ -37,7 +37,6 @@
 }
 
 .open-section,
-.add-section,
 .tags-section {
   flex-shrink: 0;
 }
@@ -47,9 +46,48 @@
   z-index: 3;
 }
 
-.add-section {
-  position: relative;
-  z-index: 2;
+.glass-panel.open-section {
+  gap: 6px;
+}
+
+.open-section h2,
+.link-collection-section h2,
+.tags-section h2 {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--heading);
+}
+
+.open-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+#open-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.open-button-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.open-button-icon[hidden] {
+  display: none;
+}
+
+.open-button-label[hidden] {
+  display: none;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -78,23 +116,6 @@ h1 {
   height: 1em;
 }
 
-.add-link {
-  display: flex;
-  gap: 10px;
-}
-
-.add-link input {
-  flex: 1;
-  padding: 12px 14px;
-  min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 400;
-  background: var(--surface);
-  color: var(--input-text);
-}
-
 .link-collection-section {
   flex: 1;
   display: flex;
@@ -114,16 +135,6 @@ h1 {
   gap: 10px;
 }
 
-.link-collection-section h2,
-.tags-section h2 {
-  margin: 0;
-  flex-shrink: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--heading);
-}
-
 .tags-section {
   position: relative;
   z-index: 2;
@@ -131,13 +142,14 @@ h1 {
 }
 
 .glass-panel.tags-section {
-  gap: 8px;
+  gap: 6px;
 }
 
 #tags-panel {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 6px;
   min-height: 0;
 }
 

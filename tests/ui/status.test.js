@@ -3,9 +3,11 @@ import { setStatus } from '../../src/ui/status.js';
 
 function mount() {
   document.body.innerHTML = `
-    <button type="button" id="open-button">OPEN</button>
-    <button type="button" id="add-link-button">ADD</button>
-    <button type="button" id="global-tag-add">ADD</button>
+    <button type="button" id="open-button" aria-label="OPEN">
+      <img class="open-button-icon" alt="" />
+      <span class="open-button-label" hidden></span>
+    </button>
+    <p id="tags-status" class="section-status" hidden></p>
     <p id="list-info" class="list-info"></p>
     <p id="settings-status" hidden></p>
   `;
@@ -17,34 +19,46 @@ describe('setStatus', () => {
     document.body.innerHTML = '';
   });
 
-  it('should overwrite the OPEN button text without touching ADD', () => {
+  it('should overwrite the OPEN button text without touching COLLECTION', () => {
     mount();
     setStatus('open', 'No links saved', 'error');
-    expect(document.getElementById('open-button').textContent).toBe('No links saved');
-    expect(document.getElementById('open-button').classList.contains('is-error')).toBe(true);
-    expect(document.getElementById('add-link-button').textContent).toBe('ADD');
+    const open = document.getElementById('open-button');
+    expect(open.querySelector('.open-button-icon').hidden).toBe(true);
+    expect(open.querySelector('.open-button-label').hidden).toBe(false);
+    expect(open.querySelector('.open-button-label').textContent).toBe('No links saved');
+    expect(open.classList.contains('is-error')).toBe(true);
     expect(document.getElementById('list-info').textContent).toBe('');
   });
 
-  it('should show a tag error on the TAGS ADD button and not in COLLECTION', () => {
+  it('should show a tag error on the TAGS status and not in COLLECTION', () => {
     mount();
     setStatus('tags', 'Tag is used by a link', 'error');
-    expect(document.getElementById('global-tag-add').textContent).toBe('Tag is used by a link');
-    expect(document.getElementById('global-tag-add').classList.contains('is-error')).toBe(true);
+    const status = document.getElementById('tags-status');
+    expect(status.textContent).toBe('Tag is used by a link');
+    expect(status.hidden).toBe(false);
+    expect(status.classList.contains('is-error')).toBe(true);
     expect(document.getElementById('list-info').textContent).toBe('');
   });
 
-  it('should restore OPEN and ADD labels after the timeout', () => {
+  it('should restore OPEN and TAGS status after the timeout', () => {
     mount();
     vi.useFakeTimers();
-    setStatus('add', 'Link added', 'success');
     setStatus('open', 'Popup blocked', 'error');
     setStatus('tags', 'Tag is used by a link', 'error');
     vi.advanceTimersByTime(3000);
-    expect(document.getElementById('add-link-button').textContent).toBe('ADD');
-    expect(document.getElementById('add-link-button').classList.contains('is-success')).toBe(false);
-    expect(document.getElementById('open-button').textContent).toBe('OPEN');
-    expect(document.getElementById('global-tag-add').textContent).toBe('ADD');
-    expect(document.getElementById('global-tag-add').classList.contains('is-error')).toBe(false);
+    const open = document.getElementById('open-button');
+    expect(open.querySelector('.open-button-icon').hidden).toBe(false);
+    expect(open.querySelector('.open-button-label').hidden).toBe(true);
+    expect(document.getElementById('tags-status').textContent).toBe('');
+    expect(document.getElementById('tags-status').hidden).toBe(true);
+    expect(document.getElementById('tags-status').classList.contains('is-error')).toBe(false);
+  });
+
+  it('should show collection messages on list-info', () => {
+    mount();
+    vi.useFakeTimers();
+    setStatus('collection', 'Link added', 'success');
+    expect(document.getElementById('list-info').textContent).toBe('Link added');
+    expect(document.getElementById('list-info').classList.contains('is-success')).toBe(true);
   });
 });
