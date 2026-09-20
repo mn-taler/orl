@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { TAG_PALETTE } from '../../src/config.js';
+import { describe, expect, it, vi } from 'vitest';
+import { MAX_LINKS, STORAGE_CORRUPT_KEY, STORAGE_KEY, STORAGE_KEY_LEGACY, TAG_PALETTE } from '../../src/config.js';
+import { flattenLinks } from '../../src/domain/groups.js';
 import {
   createEmptyStore,
   createExportPayload,
+  getStorageError,
   getStore,
   importIncomingStore,
   normalizeStore,
@@ -21,8 +23,8 @@ describe('normalizeStore', () => {
   it('should import a legacy URL array into Main', () => {
     const store = normalizeStore(['example.com', 'https://b.example']);
     expect(store.groups[0].links.map((link) => link.url)).toEqual([
-      'https://example.com',
-      'https://b.example',
+      'https://example.com/',
+      'https://b.example/',
     ]);
   });
 
@@ -84,12 +86,41 @@ describe('pruneStore / serializeStore', () => {
 describe('persistence and import', () => {
   it('should round-trip through localStorage', () => {
     persistStore(normalizeStore(['https://a.example']));
-    expect(getStore().groups[0].links[0].url).toBe('https://a.example');
+    expect(getStore().groups[0].links[0].url).toBe('https://a.example/');
   });
 
   it('should return an empty store when localStorage holds invalid JSON', () => {
-    localStorage.setItem('savedLinks', '{not json');
+    localStorage.setItem(STORAGE_KEY, '{not json');
     expect(getStore()).toEqual(createEmptyStore());
+    expect(getStorageError()).toBe('unreadable');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('{not json');
+    expect(localStorage.getItem(STORAGE_CORRUPT_KEY)).toBe('{not json');
+  });
+
+  it('should migrate a legacy key and keep data if a later persist fails', () => {
+    localStorage.setItem(STORAGE_KEY_LEGACY, JSON.stringify(['https://a.example']));
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    const store = getStore();
+    expect(store.groups[0].links[0].url).toBe('https://a.example/');
+    Storage.prototype.setItem = setItem;
+  });
+
+  it('should copy a readable legacy collection onto the namespaced key', () => {
+    localStorage.setItem(STORAGE_KEY_LEGACY, JSON.stringify(['https://a.example']));
+    expect(getStore().groups[0].links[0].url).toBe('https://a.example/');
+    expect(localStorage.getItem(STORAGE_KEY)).toContain('https://a.example/');
+    expect(localStorage.getItem(STORAGE_KEY_LEGACY)).toBeNull();
+  });
+
+  it('should drop blocked and over-limit links on normalize', () => {
+    const urls = Array.from({ length: MAX_LINKS + 1 }, (_, index) => `https://n${index}.example`);
+    urls.push('https://localhost/admin', 'javascript:alert(1)');
+    const store = normalizeStore(urls);
+    expect(flattenLinks(store)).toHaveLength(MAX_LINKS);
+    expect(flattenLinks(store).some((link) => link.url.includes('localhost'))).toBe(false);
   });
 
   it('should import new links, update empty ones, and skip existing meta', () => {
@@ -115,7 +146,7 @@ describe('persistence and import', () => {
       }],
     });
     const result = importIncomingStore(existing, incoming);
-    expect(result).toEqual({ added: 1, updated: 1, importedTagCount: 1 });
+    expect(result).toEqual({ added: 1, updated: 1, skipped: 0, importedTagCount: 1 });
     expect(existing.groups.map((group) => group.name)).toEqual(['Main', 'Work']);
     expect(existing.groups[0].links[0]).toMatchObject({ name: 'Old', tags: ['A'] });
     expect(existing.groups[0].links[1].name).toBe('Keep');

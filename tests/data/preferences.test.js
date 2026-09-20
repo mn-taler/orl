@@ -36,10 +36,12 @@ describe('saved preferences', () => {
   it('should store unique open tags as JSON and accept a legacy single tag', () => {
     saveOpenTags(['Work', 'Work', 'Home']);
     expect(getOpenTags()).toEqual(['Work', 'Home']);
+    localStorage.removeItem('orl.openTag');
     localStorage.setItem('openTag', 'Solo');
     expect(getOpenTags()).toEqual(['Solo']);
     saveOpenTags([]);
     expect(localStorage.getItem('openTag')).toBeNull();
+    expect(localStorage.getItem('orl.openTag')).toBeNull();
   });
 });
 

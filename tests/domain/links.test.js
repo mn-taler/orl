@@ -9,19 +9,20 @@ import {
 } from '../../src/domain/links.js';
 
 describe('normalizeUrl / normalizeLinkEntry', () => {
-  it('should add https and read url aliases', () => {
-    expect(normalizeUrl('example.com')).toBe('https://example.com');
+  it('should add https, canonicalize, and read url aliases', () => {
+    expect(normalizeUrl('example.com')).toBe('https://example.com/');
     expect(normalizeLinkEntry('https://a.example')).toEqual({
-      url: 'https://a.example',
+      url: 'https://a.example/',
       name: '',
       tags: [],
     });
     expect(normalizeLinkEntry({ href: 'b.example', name: ' Beta ', tags: 'Work' })).toEqual({
-      url: 'https://b.example',
+      url: 'https://b.example/',
       name: 'Beta',
       tags: ['Work'],
     });
     expect(normalizeLinkEntry('')).toBeNull();
+    expect(normalizeLinkEntry('javascript:alert(1)')).toBeNull();
   });
 });
 

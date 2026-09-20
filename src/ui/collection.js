@@ -1,6 +1,6 @@
 import { TAGS_GROUP } from '../config.js';
 import { countGroupLinks, groupHasLinks, removeLinkFromStore } from '../domain/groups.js';
-import { getStore, saveStore } from '../domain/store.js';
+import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createTagField } from './chips.js';
 import { createTreeArrow } from './dom.js';
 import { setListInfo } from './status.js';
@@ -21,7 +21,7 @@ function createLinkRow(link, onChange) {
   const a = document.createElement('a');
   a.href = link.url;
   a.target = '_blank';
-  a.rel = 'noopener';
+  a.rel = 'noopener noreferrer';
   a.className = 'link-url';
   a.textContent = link.name || link.url;
   a.title = link.url;
@@ -33,9 +33,15 @@ function createLinkRow(link, onChange) {
   removeBtn.type = 'button';
   removeBtn.textContent = 'Remove';
   removeBtn.addEventListener('click', () => {
+    const label = link.name || link.url;
+    if (!window.confirm(`Remove ${label}?`)) return;
     const store = getStore();
     removeLinkFromStore(store, link.url);
-    saveStore(store);
+    const error = saveStoreSafe(store);
+    if (error) {
+      setListInfo(error);
+      return;
+    }
     onChange();
     setListInfo('Removed');
   });

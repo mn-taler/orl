@@ -1,11 +1,14 @@
+import { normalizeHexColor } from '../domain/tags.js';
 import { createTagRemoveIcon } from './dom.js';
 
 export function createTagChip(tag, onRemove) {
   const entry = typeof tag === 'string' ? { name: tag } : tag;
   const chip = document.createElement('span');
   chip.className = onRemove ? 'tag-chip' : 'tag-chip tag-chip-static';
-  if (entry.colorLight) chip.style.setProperty('--tag-chip-light', entry.colorLight);
-  if (entry.colorDark) chip.style.setProperty('--tag-chip-dark', entry.colorDark);
+  const light = normalizeHexColor(entry.colorLight);
+  const dark = normalizeHexColor(entry.colorDark);
+  if (light) chip.style.setProperty('--tag-chip-light', light);
+  if (dark) chip.style.setProperty('--tag-chip-dark', dark);
 
   const name = document.createElement('span');
   name.className = 'tag-chip-name';

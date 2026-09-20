@@ -32,6 +32,7 @@ describe('group names', () => {
     expect(normalizeGroupName('main')).toBe('Main');
     expect(normalizeGroupName('Tags')).toBe('Main');
     expect(normalizeGroupName('Work')).toBe('Work');
+    expect(normalizeGroupName('x'.repeat(80))).toBe('x'.repeat(64));
     expect(isReservedGroupName(' tags ')).toBe(true);
   });
 });

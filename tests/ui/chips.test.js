@@ -14,6 +14,16 @@ describe('createTagChip', () => {
     expect(chip.querySelector('.tag-chip-remove')).toBeNull();
   });
 
+  it('should ignore non-hex chip colors', () => {
+    const chip = createTagChip({
+      name: 'Work',
+      colorLight: 'url(https://evil.example)',
+      colorDark: 'red',
+    });
+    expect(chip.style.getPropertyValue('--tag-chip-light')).toBe('');
+    expect(chip.style.getPropertyValue('--tag-chip-dark')).toBe('');
+  });
+
   it('should call onRemove when the X is clicked', () => {
     const onRemove = vi.fn();
     const chip = createTagChip({ name: 'Work' }, onRemove);

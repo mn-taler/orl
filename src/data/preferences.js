@@ -1,14 +1,19 @@
 import {
   DARK_MODE_KEY,
+  DARK_MODE_KEY_LEGACY,
   LINK_AMOUNT_KEY,
+  LINK_AMOUNT_KEY_LEGACY,
   MAX_LINK_AMOUNT,
   MIN_LINK_AMOUNT,
   OPEN_GROUP_KEY,
+  OPEN_GROUP_KEY_LEGACY,
   OPEN_TAG_KEY,
+  OPEN_TAG_KEY_LEGACY,
   THEME_COLOR_DARK,
   THEME_COLOR_LIGHT,
 } from '../config.js';
 import { normalizeOpenTags } from '../domain/tags.js';
+import { readStoredValue, removeStoredValue, writeStoredValue } from './storage.js';
 
 export function prefersDarkMode() {
   if (!window.matchMedia) return true;
@@ -17,7 +22,7 @@ export function prefersDarkMode() {
 }
 
 export function resolveDarkMode() {
-  const stored = localStorage.getItem(DARK_MODE_KEY);
+  const stored = readStoredValue(DARK_MODE_KEY, DARK_MODE_KEY_LEGACY);
   if (stored === 'true') return true;
   if (stored === 'false') return false;
   return prefersDarkMode();
@@ -30,7 +35,7 @@ export function applyDarkMode(enabled) {
 }
 
 export function saveDarkMode(enabled) {
-  localStorage.setItem(DARK_MODE_KEY, String(enabled));
+  writeStoredValue(DARK_MODE_KEY, String(enabled), DARK_MODE_KEY_LEGACY);
 }
 
 export function clampLinkAmount(value) {
@@ -40,28 +45,28 @@ export function clampLinkAmount(value) {
 }
 
 export function getLinkAmount() {
-  return clampLinkAmount(localStorage.getItem(LINK_AMOUNT_KEY));
+  return clampLinkAmount(readStoredValue(LINK_AMOUNT_KEY, LINK_AMOUNT_KEY_LEGACY));
 }
 
 export function saveLinkAmount(amount) {
-  localStorage.setItem(LINK_AMOUNT_KEY, String(amount));
+  writeStoredValue(LINK_AMOUNT_KEY, String(amount), LINK_AMOUNT_KEY_LEGACY);
 }
 
 export function getOpenGroup() {
-  return localStorage.getItem(OPEN_GROUP_KEY) || '';
+  return readStoredValue(OPEN_GROUP_KEY, OPEN_GROUP_KEY_LEGACY) || '';
 }
 
 export function saveOpenGroup(name) {
-  if (name) localStorage.setItem(OPEN_GROUP_KEY, name);
-  else localStorage.removeItem(OPEN_GROUP_KEY);
+  if (name) writeStoredValue(OPEN_GROUP_KEY, name, OPEN_GROUP_KEY_LEGACY);
+  else removeStoredValue(OPEN_GROUP_KEY, OPEN_GROUP_KEY_LEGACY);
 }
 
 export function getOpenTags() {
-  return normalizeOpenTags(localStorage.getItem(OPEN_TAG_KEY));
+  return normalizeOpenTags(readStoredValue(OPEN_TAG_KEY, OPEN_TAG_KEY_LEGACY));
 }
 
 export function saveOpenTags(names) {
   const tags = [...new Set(normalizeOpenTags(names))];
-  if (tags.length > 0) localStorage.setItem(OPEN_TAG_KEY, JSON.stringify(tags));
-  else localStorage.removeItem(OPEN_TAG_KEY);
+  if (tags.length > 0) writeStoredValue(OPEN_TAG_KEY, JSON.stringify(tags), OPEN_TAG_KEY_LEGACY);
+  else removeStoredValue(OPEN_TAG_KEY, OPEN_TAG_KEY_LEGACY);
 }

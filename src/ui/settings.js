@@ -1,6 +1,13 @@
-import { DARK_MODE_KEY, TAGS_GROUP } from '../config.js';
-import { createExportPayload, getStore, importIncomingStore, normalizeStore } from '../domain/store.js';
+import { DARK_MODE_KEY, DARK_MODE_KEY_LEGACY, MAX_IMPORT_BYTES, TAGS_GROUP } from '../config.js';
+import {
+  createExportPayload,
+  getStore,
+  importIncomingStore,
+  normalizeStore,
+  storageErrorMessage,
+} from '../domain/store.js';
 import { applyDarkMode, resolveDarkMode, saveDarkMode } from '../data/preferences.js';
+import { readStoredValue } from '../data/storage.js';
 import { expandGroup } from './collection.js';
 
 export function initSettings({ refreshCollection, setListInfo }) {
@@ -51,7 +58,7 @@ export function initSettings({ refreshCollection, setListInfo }) {
 
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (localStorage.getItem(DARK_MODE_KEY) == null) {
+      if (readStoredValue(DARK_MODE_KEY, DARK_MODE_KEY_LEGACY) == null) {
         applyResolvedDarkMode();
       }
     });
@@ -67,24 +74,35 @@ export function initSettings({ refreshCollection, setListInfo }) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (file.size > MAX_IMPORT_BYTES) {
+      setListInfo('Import file is too large');
+      return;
+    }
     const reader = new FileReader();
+    reader.onerror = () => setListInfo('Could not read import file');
     reader.onload = () => {
       try {
         const incoming = normalizeStore(JSON.parse(reader.result));
-        const { added, updated, importedTagCount } = importIncomingStore(getStore(), incoming);
+        const { added, updated, skipped, importedTagCount } = importIncomingStore(getStore(), incoming);
         expandGroup(TAGS_GROUP);
         refreshCollection();
         if (added > 0) {
-          setListInfo(updated > 0 ? `Imported ${added}, updated ${updated}` : `Imported ${added} link(s)`);
+          const extra = [
+            updated > 0 ? `updated ${updated}` : '',
+            skipped > 0 ? `skipped ${skipped}` : '',
+          ].filter(Boolean).join(', ');
+          setListInfo(extra ? `Imported ${added}, ${extra}` : `Imported ${added} link(s)`);
         } else if (updated > 0) {
-          setListInfo(`Updated ${updated} link(s)`);
+          setListInfo(skipped > 0 ? `Updated ${updated}, skipped ${skipped}` : `Updated ${updated} link(s)`);
         } else if (importedTagCount > 0) {
           setListInfo('Imported tags');
+        } else if (skipped > 0) {
+          setListInfo(`No new links (skipped ${skipped})`);
         } else {
           setListInfo('No new links (all already saved)');
         }
-      } catch {
-        setListInfo('Invalid or unsupported JSON file');
+      } catch (error) {
+        setListInfo(error instanceof SyntaxError ? 'Invalid or unsupported JSON file' : storageErrorMessage(error));
       }
     };
     reader.readAsText(file);

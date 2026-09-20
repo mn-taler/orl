@@ -1,4 +1,4 @@
-import { TAG_MAX_LENGTH, TAG_PALETTE, TAG_PATTERN } from '../config.js';
+import { MAX_TAG_CATALOG, TAG_MAX_LENGTH, TAG_PALETTE, TAG_PATTERN } from '../config.js';
 
 function linksInStore(store) {
   const links = [];
@@ -133,6 +133,7 @@ export function rebuildTagCatalog(store, extra = []) {
   };
   collectTagsFromLinks(store).forEach(addName);
   extra.forEach((item) => addName(catalogName(item)));
+  names.splice(MAX_TAG_CATALOG);
 
   const assigned = [];
   names.forEach((name) => {

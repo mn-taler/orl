@@ -1,14 +1,14 @@
+import { MAX_NAME_LENGTH, MAX_URL_LENGTH } from '../config.js';
 import { normalizeTags } from './tags.js';
+import { canonicalizeHttpUrl } from './urls.js';
 
 export function normalizeUrl(url) {
-  const s = (url || '').trim();
-  if (!s) return '';
-  if (!/^https?:\/\//i.test(s)) return 'https://' + s;
-  return s;
+  return canonicalizeHttpUrl(url, MAX_URL_LENGTH);
 }
 
 export function normalizeLinkName(value) {
-  return typeof value === 'string' ? value.trim() : '';
+  const name = typeof value === 'string' ? value.trim() : '';
+  return name.slice(0, MAX_NAME_LENGTH);
 }
 
 export function normalizeLinkEntry(item) {

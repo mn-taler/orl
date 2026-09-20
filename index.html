@@ -3,24 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
   <title>Open Random Link</title>
   <link rel="icon" href="icons/icon128.png" type="image/png" sizes="128x128">
   <meta name="theme-color" content="#1a2c22">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles/main.css">
-  <script>
-    (function () {
-      var stored = localStorage.getItem('darkMode');
-      var dark = stored === 'true' || (
-        stored !== 'false' && (
-          !window.matchMedia ||
-          !window.matchMedia('(prefers-color-scheme: light)').matches
-        )
-      );
-      document.documentElement.classList.toggle('dark', dark);
-      document.querySelector('meta[name="theme-color"]').content = dark ? '#1a2c22' : '#e4f6e9';
-    })();
-  </script>
+  <script src="src/theme-boot.js"></script>
 </head>
 <body>
   <div class="page">

@@ -1,4 +1,4 @@
-import { DEFAULT_GROUP, TAGS_GROUP } from '../config.js';
+import { DEFAULT_GROUP, MAX_GROUP_NAME_LENGTH, MAX_GROUPS, TAGS_GROUP } from '../config.js';
 import { mergeLinkIntoList, normalizeLinkEntry } from './links.js';
 
 export function isReservedGroupName(name) {
@@ -6,7 +6,7 @@ export function isReservedGroupName(name) {
 }
 
 export function normalizeGroupName(name) {
-  const s = (name || '').trim();
+  const s = (name || '').trim().slice(0, MAX_GROUP_NAME_LENGTH);
   if (!s || s.toLowerCase() === 'main' || isReservedGroupName(s)) return DEFAULT_GROUP;
   return s;
 }
@@ -16,7 +16,7 @@ export function normalizeSubgroup(subgroup) {
     ? subgroup.links.map(normalizeLinkEntry).filter(Boolean)
     : [];
   return {
-    name: (subgroup?.name || '').trim() || 'Untitled',
+    name: (subgroup?.name || '').trim().slice(0, MAX_GROUP_NAME_LENGTH) || 'Untitled',
     links,
   };
 }
@@ -51,11 +51,13 @@ export function mergeGroupInto(target, incoming) {
 
 export function findOrCreateGroup(store, name) {
   const groupName = normalizeGroupName(name);
-  let group = store.groups.find((item) => item.name === groupName);
-  if (!group) {
-    group = { name: groupName, links: [], subgroups: [] };
-    store.groups.push(group);
+  const existing = store.groups.find((item) => item.name === groupName);
+  if (existing) return existing;
+  if (store.groups.length >= MAX_GROUPS) {
+    return store.groups.find((item) => item.name === DEFAULT_GROUP) || store.groups[0];
   }
+  const group = { name: groupName, links: [], subgroups: [] };
+  store.groups.push(group);
   return group;
 }
 

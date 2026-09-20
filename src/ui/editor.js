@@ -1,7 +1,7 @@
-import { TAGS_GROUP } from '../config.js';
-import { findOrCreateGroup, findLinkInStore } from '../domain/groups.js';
+import { MAX_LINKS, TAGS_GROUP } from '../config.js';
+import { findLinkInStore, findOrCreateGroup, flattenLinks } from '../domain/groups.js';
 import { linkHasMeta, normalizeLinkEntry } from '../domain/links.js';
-import { getStore, saveStore } from '../domain/store.js';
+import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createTagEntry, validateTag } from '../domain/tags.js';
 import { createTagChip } from './chips.js';
 import { expandGroup } from './collection.js';
@@ -102,7 +102,11 @@ export function initEditor({ refreshCollection, setListInfo }) {
       if (!linkHasMeta(existing.link) && linkHasMeta(incoming)) {
         existing.link.name = incoming.name;
         existing.link.tags = incoming.tags.slice();
-        saveStore(store);
+        const error = saveStoreSafe(store);
+        if (error) {
+          setListInfo(error);
+          return;
+        }
         expandGroup(existing.group.name);
         if (incoming.tags.length > 0) expandGroup(TAGS_GROUP);
         clearLinkForm();
@@ -113,9 +117,17 @@ export function initEditor({ refreshCollection, setListInfo }) {
       setListInfo('Link is already saved');
       return;
     }
+    if (flattenLinks(store).length >= MAX_LINKS) {
+      setListInfo('Collection is full');
+      return;
+    }
     const group = findOrCreateGroup(store, linkGroupInput.value);
     group.links.push(incoming);
-    saveStore(store);
+    const error = saveStoreSafe(store);
+    if (error) {
+      setListInfo(error);
+      return;
+    }
     expandGroup(group.name);
     if (incoming.tags.length > 0) expandGroup(TAGS_GROUP);
     clearLinkForm();

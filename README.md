@@ -50,6 +50,8 @@ CI is defined in `.github/workflows/ci.yml`. On every push and pull request it r
 
 This works on a free GitHub account. Actions minutes are free for public repositories. GitHub Pages on the free plan is also meant for public repos.
 
+Project Pages share origin (`https://<user>.github.io`) across repos. Another site on that host can read the same `localStorage`. Use a custom domain if you want isolation, and do not store secrets in link URLs.
+
 ## Run locally
 
 Serve this folder (modules will not load from `file://`), e.g. `python3 -m http.server 8080`, then open `http://localhost:8080`.

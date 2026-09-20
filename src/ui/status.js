@@ -1,6 +1,7 @@
-import { getLinks } from '../domain/store.js';
+import { getLinks, getStorageError } from '../domain/store.js';
 
 const EMPTY_LIST_MESSAGE = 'No links saved yet';
+const DAMAGED_LIST_MESSAGE = 'Saved data is damaged. New saves will replace it.';
 const STATUS_DURATION_MS = 3000;
 let listInfoTimeoutId = null;
 
@@ -10,6 +11,11 @@ function getListInfoEl() {
 
 export function restoreListInfo(links) {
   const infoEl = getListInfoEl();
+  if (getStorageError() === 'unreadable') {
+    infoEl.textContent = DAMAGED_LIST_MESSAGE;
+    infoEl.classList.remove('hidden');
+    return;
+  }
   if (links.length === 0) {
     infoEl.textContent = EMPTY_LIST_MESSAGE;
     infoEl.classList.remove('hidden');

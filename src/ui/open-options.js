@@ -169,15 +169,21 @@ export function initOpenOptions({ setListInfo }) {
     }
     const amount = applyLinkAmount(linkAmountInput.value);
     const picked = pickRandomLinks(list, amount);
+    let opened = 0;
     picked.forEach((url) => {
-      window.open(url, '_blank', 'noopener');
+      const popup = window.open(url, '_blank', 'noopener,noreferrer');
+      if (popup) opened += 1;
     });
-    if (picked.length === 1) {
+    if (opened === 0) {
+      setListInfo(picked.length === 1 ? 'Popup blocked' : 'Popups blocked');
+    } else if (opened === 1 && picked.length === 1) {
       setListInfo('Link opened');
-    } else if (picked.length < amount) {
-      setListInfo(`Opened ${picked.length} of ${amount}`);
+    } else if (opened < picked.length) {
+      setListInfo(`Opened ${opened} of ${picked.length} (popups blocked)`);
+    } else if (opened < amount) {
+      setListInfo(`Opened ${opened} of ${amount}`);
     } else {
-      setListInfo(`${picked.length} links opened`);
+      setListInfo(`${opened} links opened`);
     }
   });
 
