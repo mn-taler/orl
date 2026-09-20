@@ -23,9 +23,11 @@ describe('createTagChip', () => {
 });
 
 describe('createTagField', () => {
-  it('should render one chip per tag', () => {
-    const field = createTagField([{ name: 'A' }, { name: 'B' }], () => {});
+  it('should render one static chip per tag without a remove button', () => {
+    const field = createTagField([{ name: 'A' }, { name: 'B' }]);
     expect(field.className).toBe('tag-field');
     expect(field.querySelectorAll('.tag-chip')).toHaveLength(2);
+    expect(field.querySelectorAll('.tag-chip-static')).toHaveLength(2);
+    expect(field.querySelector('.tag-chip-remove')).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { TAGS_GROUP } from '../config.js';
-import { countGroupLinks, groupHasLinks, removeLinkFromStore, removeTagFromLinks } from '../domain/groups.js';
+import { countGroupLinks, groupHasLinks, removeLinkFromStore } from '../domain/groups.js';
 import { getStore, saveStore } from '../domain/store.js';
 import { createTagField } from './chips.js';
 import { createTreeArrow } from './dom.js';
@@ -105,16 +105,10 @@ function createTreeGroup(group, onChange) {
   return createTreeNode(group.name, `group:${group.name}`, children, countGroupLinks(group), false);
 }
 
-function createTagsGroup(tags, onChange) {
+function createTagsGroup(tags) {
   const fieldWrap = document.createElement('li');
   fieldWrap.className = 'tree-tag-field';
-  fieldWrap.appendChild(createTagField(tags, (tagName) => {
-    const store = getStore();
-    removeTagFromLinks(store, tagName);
-    saveStore(store);
-    onChange();
-    setListInfo('Tag removed');
-  }));
+  fieldWrap.appendChild(createTagField(tags));
   return createTreeNode(TAGS_GROUP, `group:${TAGS_GROUP}`, [fieldWrap], tags.length, false);
 }
 
@@ -125,7 +119,7 @@ export function renderCollection(listEl, onChange) {
     listEl.appendChild(createTreeGroup(group, onChange));
   });
   if (store.tags.length > 0) {
-    listEl.appendChild(createTagsGroup(store.tags, onChange));
+    listEl.appendChild(createTagsGroup(store.tags));
   }
 }
 
