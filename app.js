@@ -7,6 +7,14 @@ const DEFAULT_GROUP = 'Main';
 const TAGS_GROUP = 'Tags';
 const TAG_MAX_LENGTH = 128;
 const TAG_PATTERN = /^[A-Za-z0-9]+$/;
+const TAG_PALETTE = [
+  { light: '#1c51ba', dark: '#2e6be5' },
+  { light: '#1c9bba', dark: '#2ec1e5' },
+  { light: '#1cba7b', dark: '#2ee59c' },
+  { light: '#701cba', dark: '#902ee5' },
+  { light: '#ba1cb5', dark: '#e52edf' },
+  { light: '#ba1c80', dark: '#e52ea2' },
+];
 
 function normalizeUrl(url) {
   const s = (url || '').trim();
@@ -71,24 +79,111 @@ function collectTagsFromLinks(store) {
   return tags;
 }
 
-function addStoreTags(store, extra = []) {
-  const unique = [];
-  const add = (tag) => {
-    const normalized = normalizeTag(tag);
-    if (normalized && !unique.includes(normalized)) unique.push(normalized);
+function normalizeHexColor(value) {
+  const hex = String(value || '').trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(hex) ? hex : '';
+}
+
+function paletteIndexForColors(light, dark) {
+  return TAG_PALETTE.findIndex((swatch) => swatch.light === light && swatch.dark === dark);
+}
+
+function nextPaletteIndex(entries) {
+  const counts = TAG_PALETTE.map(() => 0);
+  for (const entry of entries) {
+    const index = paletteIndexForColors(entry.colorLight, entry.colorDark);
+    if (index >= 0) counts[index] += 1;
+  }
+  let chosen = 0;
+  let lowest = Infinity;
+  counts.forEach((count, index) => {
+    if (count < lowest) {
+      lowest = count;
+      chosen = index;
+    }
+  });
+  return chosen;
+}
+
+function swatchFromPreferred(entries, preferred) {
+  const light = normalizeHexColor(preferred?.colorLight || preferred?.['color-light']);
+  const dark = normalizeHexColor(preferred?.colorDark || preferred?.['color-dark']);
+  const exact = paletteIndexForColors(light, dark);
+  if (exact >= 0) return TAG_PALETTE[exact];
+  const byLight = TAG_PALETTE.findIndex((swatch) => swatch.light === light);
+  if (byLight >= 0) return TAG_PALETTE[byLight];
+  const byDark = TAG_PALETTE.findIndex((swatch) => swatch.dark === dark);
+  if (byDark >= 0) return TAG_PALETTE[byDark];
+  return TAG_PALETTE[nextPaletteIndex(entries)];
+}
+
+function createTagEntry(name, entries, preferred) {
+  const swatch = swatchFromPreferred(entries, preferred);
+  return { name, colorLight: swatch.light, colorDark: swatch.dark };
+}
+
+function normalizeTagCatalogEntry(item) {
+  if (typeof item === 'string') {
+    const name = normalizeTag(item);
+    return name ? { name, colorLight: '', colorDark: '' } : null;
+  }
+  if (!item || typeof item !== 'object') return null;
+  const name = normalizeTag(item.name || item.tag || item.label);
+  if (!name) return null;
+  return {
+    name,
+    colorLight: normalizeHexColor(item.colorLight || item['color-light']),
+    colorDark: normalizeHexColor(item.colorDark || item['color-dark']),
   };
-  collectTagsFromLinks(store).forEach(add);
-  extra.forEach(add);
-  store.tags = unique;
+}
+
+function catalogName(item) {
+  if (typeof item === 'string') return normalizeTag(item);
+  return normalizeTag(item?.name || item?.tag || item?.label);
+}
+
+function rebuildTagCatalog(store, extra = []) {
+  const known = new Map();
+  const remember = (item) => {
+    const entry = normalizeTagCatalogEntry(item);
+    if (!entry) return;
+    const prev = known.get(entry.name);
+    if (!prev) {
+      known.set(entry.name, entry);
+      return;
+    }
+    if (!prev.colorLight && entry.colorLight) prev.colorLight = entry.colorLight;
+    if (!prev.colorDark && entry.colorDark) prev.colorDark = entry.colorDark;
+  };
+  (Array.isArray(store.tags) ? store.tags : []).forEach(remember);
+  extra.forEach(remember);
+
+  const names = [];
+  const addName = (name) => {
+    const tag = normalizeTag(name);
+    if (tag && !names.includes(tag)) names.push(tag);
+  };
+  collectTagsFromLinks(store).forEach(addName);
+  extra.forEach((item) => addName(catalogName(item)));
+
+  const assigned = [];
+  names.forEach((name) => {
+    assigned.push(createTagEntry(name, assigned, known.get(name)));
+  });
+  store.tags = assigned;
+}
+
+function addStoreTags(store, extra = []) {
+  rebuildTagCatalog(store, extra);
 }
 
 function syncStoreTags(store) {
-  store.tags = collectTagsFromLinks(store);
+  rebuildTagCatalog(store, []);
 }
 
 function extractImportedTags(data) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
-  return normalizeTags(data.tags);
+  return Array.isArray(data.tags) ? data.tags : [];
 }
 
 function normalizeLinkEntry(item) {
@@ -259,7 +354,13 @@ function serializeStore(store) {
         links: subgroup.links.map(serializeLink),
       })),
     })),
-    tags: Array.isArray(pruned.tags) ? pruned.tags.slice() : [],
+    tags: Array.isArray(pruned.tags)
+      ? pruned.tags.map((tag) => ({
+        name: tag.name,
+        'color-dark': tag.colorDark,
+        'color-light': tag.colorLight,
+      }))
+      : [],
   };
 }
 
@@ -284,8 +385,21 @@ function pruneStore(store) {
     const main = store.groups.find((group) => group.name === DEFAULT_GROUP);
     store.groups = [main, ...store.groups.filter((group) => group.name !== DEFAULT_GROUP)];
   }
-  store.tags = normalizeTags(store.tags);
+  rebuildTagCatalog(store, store.tags);
   return store;
+}
+
+function tagCatalogNeedsSave(data, store) {
+  if (!store.tags.length) return false;
+  const raw = data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.tags)
+    ? data.tags
+    : [];
+  return store.tags.some((tag) => {
+    const source = raw.find((item) => catalogName(item) === tag.name);
+    if (!source || typeof source === 'string') return true;
+    return !normalizeHexColor(source['color-dark'] || source.colorDark)
+      || !normalizeHexColor(source['color-light'] || source.colorLight);
+  });
 }
 
 function getStore() {
@@ -295,6 +409,8 @@ function getStore() {
     const store = pruneStore(normalizeStore(data));
     if (raw && !(data && Array.isArray(data.groups))) {
       saveStore(store);
+    } else if (tagCatalogNeedsSave(data, store)) {
+      persistStore(store);
     }
     return store;
   } catch {
@@ -390,22 +506,25 @@ function createTagRemoveIcon() {
 }
 
 function createTagChip(tag, onRemove) {
+  const entry = typeof tag === 'string' ? { name: tag } : tag;
   const chip = document.createElement('span');
   chip.className = 'tag-chip';
+  if (entry.colorLight) chip.style.setProperty('--tag-chip-light', entry.colorLight);
+  if (entry.colorDark) chip.style.setProperty('--tag-chip-dark', entry.colorDark);
 
   const name = document.createElement('span');
   name.className = 'tag-chip-name';
-  name.textContent = tag;
+  name.textContent = entry.name;
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'tag-chip-remove';
-  removeBtn.setAttribute('aria-label', `Remove tag ${tag}`);
+  removeBtn.setAttribute('aria-label', `Remove tag ${entry.name}`);
   removeBtn.appendChild(createTagRemoveIcon());
   removeBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onRemove(tag);
+    onRemove(entry.name);
   });
 
   chip.appendChild(name);
@@ -530,8 +649,8 @@ function createTreeGroup(group, onChange) {
 function createTagsGroup(tags, onChange) {
   const fieldWrap = document.createElement('li');
   fieldWrap.className = 'tree-tag-field';
-  fieldWrap.appendChild(createTagField(tags, (tag) => {
-    removeTagFromStore(tag);
+  fieldWrap.appendChild(createTagField(tags, (tagName) => {
+    removeTagFromStore(tagName);
     onChange();
     setListInfo('Tag removed');
   }));
@@ -809,11 +928,22 @@ document.addEventListener('DOMContentLoaded', () => {
     tagEditorError.textContent = message || '';
   };
 
+  const colorsForDraftTags = (names) => {
+    const assigned = getStore().tags.map((tag) => ({ ...tag }));
+    return names.map((name) => {
+      const existing = assigned.find((tag) => tag.name === name);
+      if (existing) return existing;
+      const entry = createTagEntry(name, assigned);
+      assigned.push(entry);
+      return entry;
+    });
+  };
+
   const renderDraftTags = () => {
     draftTagList.innerHTML = '';
-    draftTags.forEach((tag) => {
+    colorsForDraftTags(draftTags).forEach((tag) => {
       draftTagList.appendChild(createTagChip(tag, () => {
-        draftTags = draftTags.filter((item) => item !== tag);
+        draftTags = draftTags.filter((item) => item !== tag.name);
         renderDraftTags();
         setTagEditorError('');
       }));

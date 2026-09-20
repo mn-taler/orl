@@ -4,10 +4,12 @@
 
 html {
   color-scheme: light;
-  --text: #222;
-  --text-muted: #555;
-  --text-subtle: #888;
-  --heading: #333;
+  --text: #36558b;
+  --text-muted: #405d90;
+  --text-subtle: #9ab9ca;
+  --input-text: #36558b;
+  --input-placeholder: #9bb1c6;
+  --heading: #609bd3;
   --surface: #fff;
   --surface-hover: #f5f5f5;
   --surface-inset: #fff;
@@ -19,6 +21,11 @@ html {
   --tag-bg: #33ae91;
   --tag-text: #e4fffd;
   --group-list-max-height: 320px;
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.62);
+  --glass-highlight: rgba(255, 255, 255, 0.78);
+  --glass-shadow: 0 10px 28px rgba(40, 70, 90, 0.1);
+  --glass-well: rgba(255, 255, 255, 0.55);
   background-color: #e4f6e9;
   background-image: linear-gradient(165deg, #dafaf0 0%, #c0d5f5 100%);
   background-attachment: fixed;
@@ -27,9 +34,11 @@ html {
 html.dark {
   color-scheme: dark;
   --text: #e0e0e0;
-  --text-muted: #aaa;
-  --text-subtle: #777;
-  --heading: #e0e0e0;
+  --text-muted: #9cb7b7;
+  --text-subtle: #64717a;
+  --input-text: #e0e0e0;
+  --input-placeholder: #777;
+  --heading: #5d7487;
   --surface: #233140;
   --surface-hover: #1f4d4d;
   --surface-inset: #102239;
@@ -40,6 +49,11 @@ html.dark {
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --tag-bg: #5fccb6;
   --tag-text: #042421;
+  --glass-bg: rgba(22, 36, 50, 0.46);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 6px 12px rgba(0, 0, 0, 0.32);
+  --glass-well: rgba(16, 28, 42, 0.5);
   background-color: #1a2c22;
   background-image: linear-gradient(165deg, #0f342c 0%, #0a1230 100%);
 }
@@ -52,7 +66,7 @@ body {
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "Gill Sans", "Gill Sans MT", system-ui, sans-serif;
   font-size: 14px;
   background: transparent;
   color: var(--text);
@@ -75,9 +89,33 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex: 1;
   min-height: 0;
+}
+
+.glass-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+}
+
+.open-section,
+.add-section {
+  flex-shrink: 0;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+  }
 }
 
 .header {
@@ -177,6 +215,22 @@ button.settings-item:hover,
   font-size: 14px;
 }
 
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+input {
+  color: var(--input-text);
+}
+
+input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
 button {
   padding: 12px 20px;
   min-height: 48px;
@@ -204,12 +258,12 @@ button.options-toggle {
   align-items: center;
   gap: 6px;
   width: fit-content;
-  padding: 4px 2px;
-  min-height: 32px;
+  padding: 2px;
+  min-height: 28px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -220,6 +274,8 @@ button.options-toggle:hover {
 
 .options-arrow {
   flex-shrink: 0;
+  width: 12px;
+  height: 12px;
   transition: transform 0.15s ease;
 }
 
@@ -232,9 +288,9 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   flex-direction: column;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--glass-well);
 }
 
 .options-panel[hidden] {
@@ -295,11 +351,15 @@ button.options-add-button {
   max-width: 100%;
   padding: 3px 4px 3px 8px;
   border-radius: 6px;
-  background: var(--tag-bg);
-  color: var(--tag-text);
+  background: var(--tag-chip-light, var(--tag-bg));
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   line-height: 1.35;
+}
+
+html.dark .tag-chip {
+  background: var(--tag-chip-dark, var(--tag-bg));
 }
 
 .tag-chip-name {
@@ -357,7 +417,7 @@ html.dark .tag-editor-error {
   border-radius: 6px;
   font-size: 14px;
   background: var(--surface-inset);
-  color: var(--text);
+  color: var(--input-text);
 }
 
 .options-row input[type="number"] {
@@ -393,27 +453,33 @@ html.dark .tag-editor-error {
   border-radius: 8px;
   font-size: 16px;
   background: var(--surface);
-  color: var(--text);
+  color: var(--input-text);
 }
 
-.link-list-section {
+.link-collection-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.link-list-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 10px;
+.glass-panel.link-collection-section {
+  gap: 6px;
 }
 
-.link-list-section h2 {
+.link-collection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.link-collection-section h2 {
   margin: 0;
+  flex-shrink: 0;
   font-size: 16px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--heading);
 }
 
@@ -424,9 +490,7 @@ html.dark .tag-editor-error {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface);
+  background: transparent;
 }
 
 #link-list .tree-node {
@@ -479,8 +543,15 @@ html.dark .tag-editor-error {
 }
 
 #link-list .tree-tag-field {
-  padding: 8px 4px 10px 6px;
-  border-top: 1px solid var(--divider);
+  padding: 4px 0 8px;
+}
+
+#link-list .tree-tag-field .tag-field {
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 button.tree-toggle {
@@ -580,9 +651,15 @@ html.dark #link-list .remove-link:hover {
 
 .list-info {
   margin: 0;
-  min-height: 1.2em;
+  min-width: 0;
+  flex: 1;
   color: var(--text-subtle);
   font-size: 12px;
+  line-height: 1.2;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .list-info.hidden {
