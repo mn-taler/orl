@@ -26,6 +26,18 @@ export function normalizeLinkEntry(item) {
   };
 }
 
+export function displayLinkUrl(url) {
+  const raw = String(url || '').trim();
+  const stripped = raw.replace(/^https?:\/\/(www\.)?/i, '');
+  return stripped || raw;
+}
+
+export function displayLinkLabel(link) {
+  const name = normalizeLinkName(link?.name);
+  if (name) return name;
+  return displayLinkUrl(link?.url || '');
+}
+
 export function linkHasMeta(link) {
   return Boolean(link && (link.name || (link.tags && link.tags.length > 0)));
 }

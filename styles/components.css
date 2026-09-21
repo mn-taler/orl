@@ -532,13 +532,22 @@ button.tag-select-option[aria-selected="true"] {
 .tree-link-frame {
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 6px 0 12px;
-  min-height: 40px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 6px 6px 6px 12px;
+  min-height: 72px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--glass-well);
+}
+
+.tree-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
 }
 
 .tree-link-editor-frame {
@@ -627,6 +636,14 @@ html.dark #tags-add button.tree-link-bar-delete {
   border-radius: 0 10px 10px 0;
 }
 
+#link-list .tree-link-confirm-frame .tree-link-confirm-bar button.tree-link-bar-cancel {
+  border-radius: 0 0 0 10px;
+}
+
+#link-list .tree-link-confirm-frame .tree-link-confirm-bar button.tree-link-bar-delete {
+  border-radius: 0 0 10px 0;
+}
+
 .tree-link-update-label {
   min-width: 0;
   overflow: hidden;
@@ -690,6 +707,13 @@ html.dark #tags-add button.tree-link-bar-delete {
   padding-right: 6px;
 }
 
+#link-list > .tree-node > .tree-node-row {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface) 78%, var(--glass-bg));
+}
+
 .tree-node-row .tree-toggle {
   flex: 1;
   width: auto;
@@ -746,7 +770,7 @@ button.tree-add-group {
   border: none;
   border-radius: 0;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--add);
   font-size: 14px;
   font-weight: 400;
   text-align: left;
@@ -814,22 +838,54 @@ button.tags-toggle:hover {
   border-radius: 10px;
 }
 
-#link-list .link-url {
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 40px;
+.tree-link-confirm-frame {
+  padding: 0;
+  gap: 0;
+}
+
+.tree-link-confirm-message {
+  flex: 1;
   display: flex;
   align-items: center;
+  margin: 0;
+  padding: 0 12px;
+  min-width: 0;
+  min-height: 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.tree-link-confirm-prefix,
+.tree-link-confirm-suffix {
+  flex-shrink: 0;
+}
+
+.tree-link-confirm-target {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #0066cc;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
+  color: var(--link);
 }
 
-html.dark #link-list .link-url {
-  color: #85d5f7;
+.tree-link-confirm-frame .tree-link-confirm-bar {
+  flex-shrink: 0;
+  border-top: 1px solid var(--divider);
+  border-radius: 0 0 10px 10px;
+}
+
+#link-list .link-url {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 28px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 28px;
+  color: var(--link);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #link-list .link-url:hover {

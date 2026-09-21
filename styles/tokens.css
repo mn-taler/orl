@@ -6,6 +6,8 @@ html {
   --input-text: #36558b;
   --input-placeholder: #9bb1c6;
   --heading: #4f8ac1;
+  --link: #4998dd;
+  --add: #4ca790;
   --surface: #ecf6f8;
   --surface-hover: #fff;
   --surface-inset: #fff;
@@ -33,11 +35,13 @@ html {
 html.dark {
   color-scheme: dark;
   --text: #e0e0e0;
-  --text-muted: #9cb7b7;
+  --text-muted: #8f9ab2;
   --text-subtle: #64717a;
   --input-text: #e0e0e0;
   --input-placeholder: #656e7a;
   --heading: #5d7487;
+  --link: #85d5f7;
+  --add: #91c7b4;
   --surface: #192c44;
   --surface-hover: #1f4d4d;
   --surface-inset: #102239;

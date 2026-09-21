@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  displayLinkLabel,
   linkHasMeta,
   mergeLinkIntoList,
   normalizeLinkEntry,
@@ -48,6 +49,15 @@ describe('mergeLinkIntoList', () => {
     expect(list[0]).toEqual({ url: 'https://a.example', name: 'A', tags: ['Work'] });
     expect(mergeLinkIntoList(list, { url: 'https://a.example', name: 'B', tags: ['Home'] })).toBe('exists');
     expect(list[0].name).toBe('A');
+  });
+});
+
+describe('displayLinkLabel', () => {
+  it('should prefer a name and hide https://www. for unnamed URLs', () => {
+    expect(displayLinkLabel({ name: 'Docs', url: 'https://www.example.com/path' })).toBe('Docs');
+    expect(displayLinkLabel({ name: '', url: 'https://www.example.com/path' })).toBe('example.com/path');
+    expect(displayLinkLabel({ name: '  ', url: 'https://sadfsdf/' })).toBe('sadfsdf/');
+    expect(displayLinkLabel({ name: '', url: 'http://www.foo.example/a' })).toBe('foo.example/a');
   });
 });
 

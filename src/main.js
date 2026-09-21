@@ -1,5 +1,5 @@
 import { getLinks } from './domain/store.js';
-import { renderCollection } from './ui/collection.js?v=mobile5';
+import { renderCollection } from './ui/collection.js?v=linkrow3';
 import { initOpenOptions } from './ui/open-options.js?v=mobile4';
 import { initSettings } from './ui/settings.js';
 import { initTagsPanel } from './ui/tags-panel.js?v=mobile5';

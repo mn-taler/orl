@@ -10,15 +10,16 @@ import {
   renameGroup,
   updateLinkInStore,
 } from '../domain/groups.js';
+import { displayLinkLabel } from '../domain/links.js';
 import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createDeleteActionBar, createEditorActionBar } from './action-bar.js';
-import { createOverflowTagRow } from './chips.js?v=overflow4';
+import { createOverflowTagRow } from './chips.js?v=linkrow1';
 import {
   createEditIcon,
   createPlusIcon,
   createTrashIcon,
   createTreeArrow,
-} from './dom.js?v=mobile4';
+} from './dom.js?v=mobile6';
 import { setStatus } from './status.js';
 import { bindTagMultiSelect } from './tag-select.js';
 
@@ -81,6 +82,40 @@ function createDeleteConfirm(tagName, onDelete, onCancel) {
   el.className = 'tree-link tree-link-editing tree-link-confirm';
   el.appendChild(createDeleteActionBar(onDelete, onCancel));
   return el;
+}
+
+function createLinkDeleteConfirm(link, onDelete, onCancel) {
+  const li = document.createElement('li');
+  li.className = 'tree-link tree-link-editing tree-link-confirm';
+
+  const frame = document.createElement('div');
+  frame.className = 'tree-link-frame tree-link-confirm-frame';
+
+  const message = document.createElement('p');
+  message.className = 'tree-link-confirm-message';
+  const label = displayLinkLabel(link);
+
+  const prefix = document.createElement('span');
+  prefix.className = 'tree-link-confirm-prefix';
+  prefix.textContent = 'Delete ';
+
+  const target = document.createElement('span');
+  target.className = 'tree-link-confirm-target';
+  target.textContent = label;
+  target.title = label;
+
+  const suffix = document.createElement('span');
+  suffix.className = 'tree-link-confirm-suffix';
+  suffix.textContent = '?';
+
+  message.appendChild(prefix);
+  message.appendChild(target);
+  message.appendChild(suffix);
+
+  frame.appendChild(message);
+  frame.appendChild(createDeleteActionBar(onDelete, onCancel));
+  li.appendChild(frame);
+  return li;
 }
 
 function createOptionsRow(labelText, control, labelFor) {
@@ -286,9 +321,9 @@ function createAddLinkRow(groupName, onChange) {
 }
 
 function createLinkRow(link, groupName, onChange) {
-  const title = link.name || link.url;
+  const title = displayLinkLabel(link);
   if (deletingUrl === link.url) {
-    return createDeleteConfirm('li', () => {
+    return createLinkDeleteConfirm(link, () => {
       const store = getStore();
       const result = deleteLinkFromStore(store, link.url);
       if (result.error) {
@@ -336,10 +371,18 @@ function createLinkRow(link, groupName, onChange) {
     onChange();
   });
 
-  frame.appendChild(a);
-  frame.appendChild(tags);
-  frame.appendChild(editBtn);
-  frame.appendChild(deleteBtn);
+  const titleRow = document.createElement('div');
+  titleRow.className = 'tree-link-row tree-link-row-title';
+  titleRow.appendChild(a);
+  titleRow.appendChild(editBtn);
+
+  const metaRow = document.createElement('div');
+  metaRow.className = 'tree-link-row tree-link-row-meta';
+  metaRow.appendChild(tags);
+  metaRow.appendChild(deleteBtn);
+
+  frame.appendChild(titleRow);
+  frame.appendChild(metaRow);
   li.appendChild(frame);
   return li;
 }

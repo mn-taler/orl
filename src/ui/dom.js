@@ -74,13 +74,13 @@ export function createEditIcon() {
   path.setAttribute('stroke-linejoin', 'round');
   return svgIcon({
     viewBox: '0 0 24 24',
-    width: '14',
-    height: '14',
+    width: '16',
+    height: '16',
     'aria-hidden': 'true',
   }, path);
 }
 
-export function createTrashIcon(size = 14) {
+export function createTrashIcon(size = 16) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6');
   path.setAttribute('fill', 'none');
