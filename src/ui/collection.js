@@ -18,7 +18,7 @@ import {
   createPlusIcon,
   createTrashIcon,
   createTreeArrow,
-} from './dom.js';
+} from './dom.js?v=mobile4';
 import { setStatus } from './status.js';
 import { bindTagMultiSelect } from './tag-select.js';
 
@@ -102,7 +102,7 @@ function fillGroupSelect(select, groupName) {
   groupNames.forEach((name) => {
     const option = document.createElement('option');
     option.value = name;
-    option.textContent = name;
+    option.textContent = name.toUpperCase();
     select.appendChild(option);
   });
   select.value = groupNames.includes(groupName) ? groupName : groupNames[0] || '';
@@ -277,7 +277,7 @@ function createAddActionRow(labelText, onClick, tagName = 'li') {
 }
 
 function createAddLinkRow(groupName, onChange) {
-  return createAddActionRow('add link', () => {
+  return createAddActionRow('Add link', () => {
     closeEditors();
     addingLinkGroup = groupName;
     expandGroup(groupName);
@@ -454,12 +454,12 @@ function createTreeGroup(group, onChange) {
   const leading = addingLinkGroup === group.name
     ? createAddLinkEditor(group.name, onChange)
     : createAddLinkRow(group.name, onChange);
-  const editBtn = createIconButton(`Edit ${group.name}`, createEditIcon(), 'tree-link-action tree-link-edit', () => {
+  const editBtn = createIconButton(`Edit ${group.name.toUpperCase()}`, createEditIcon(), 'tree-link-action tree-link-edit', () => {
     closeEditors();
     editingGroup = group.name;
     onChange();
   });
-  const deleteBtn = createIconButton(`Delete ${group.name}`, createTrashIcon(), 'tree-link-action tree-link-delete', () => {
+  const deleteBtn = createIconButton(`Delete ${group.name.toUpperCase()}`, createTrashIcon(), 'tree-link-action tree-link-delete', () => {
     closeEditors();
     deletingGroup = group.name;
     onChange();
@@ -552,7 +552,7 @@ function createGroupEditor(onChange) {
 }
 
 function createAddGroupRow(onChange) {
-  return createAddActionRow('add group', () => {
+  return createAddActionRow('Add group', () => {
     closeEditors();
     addingGroup = true;
     onChange();

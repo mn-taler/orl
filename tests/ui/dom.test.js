@@ -7,6 +7,7 @@ describe('fillSelect', () => {
     const current = fillSelect(select, ['Main', 'Work'], 'Work');
     expect(current).toBe('Work');
     expect([...select.options].map((option) => option.value)).toEqual(['', 'Main', 'Work']);
+    expect([...select.options].map((option) => option.textContent)).toEqual(['All', 'MAIN', 'WORK']);
     expect(select.value).toBe('Work');
   });
 

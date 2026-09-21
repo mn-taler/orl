@@ -41,11 +41,11 @@ function createAddTagRow(onClick) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'tree-add-group';
-  button.setAttribute('aria-label', 'add tag');
+  button.setAttribute('aria-label', 'Add tag');
   button.appendChild(createPlusIcon());
   const label = document.createElement('span');
   label.className = 'tree-label';
-  label.textContent = 'add tag';
+  label.textContent = 'Add tag';
   button.appendChild(label);
   button.addEventListener('click', onClick);
 

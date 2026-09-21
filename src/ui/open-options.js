@@ -11,7 +11,7 @@ import {
   saveOpenGroup,
   saveOpenTags,
 } from '../data/preferences.js';
-import { bindDisclosure, fillSelect } from './dom.js';
+import { bindDisclosure, fillSelect } from './dom.js?v=mobile4';
 import { bindTagMultiSelect } from './tag-select.js';
 
 export function initOpenOptions({ setStatus }) {

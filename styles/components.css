@@ -86,7 +86,7 @@ button.options-toggle {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -125,7 +125,7 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
 }
 
@@ -158,7 +158,7 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
 #open-button.is-error,
 #open-button.is-success,
 #open-button.is-info {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.2;
   white-space: normal;
 }
@@ -259,7 +259,7 @@ button.tag-palette-swatch[aria-selected="true"] {
   border-radius: 6px;
   background: var(--tag-chip-light, var(--tag-bg));
   color: var(--tag-text);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -307,7 +307,7 @@ button.tag-chip-remove:hover {
 
 .section-status {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.2;
   color: var(--text-subtle);
 }
@@ -479,6 +479,11 @@ button.tag-select-option[aria-selected="true"] {
   text-overflow: ellipsis;
 }
 
+#add-group-name,
+#edit-group-name {
+  text-transform: uppercase;
+}
+
 .tree-link-editor .tag-select-menu {
   min-width: 0;
   width: max-content;
@@ -521,7 +526,7 @@ button.tag-select-option[aria-selected="true"] {
   gap: 8px;
   padding: 4px 0;
   min-height: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .tree-link-frame {
@@ -568,7 +573,7 @@ button.tag-select-option[aria-selected="true"] {
   border: none;
   border-radius: 0;
   background: transparent;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
 }
 
@@ -627,7 +632,7 @@ html.dark #tags-add button.tree-link-bar-delete {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   text-align: left;
 }
@@ -660,7 +665,7 @@ html.dark #tags-add button.tree-link-bar-delete {
 .tree-link-tags-more {
   flex-shrink: 0;
   color: var(--text-subtle);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -704,7 +709,7 @@ button.tree-toggle {
   border-radius: 0;
   background: transparent;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   text-align: left;
 }
@@ -742,7 +747,7 @@ button.tree-add-group {
   border-radius: 0;
   background: transparent;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   text-align: left;
 }
@@ -794,12 +799,13 @@ button.tags-toggle:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .tree-count {
   flex-shrink: 0;
   color: var(--text-subtle);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 

@@ -49,7 +49,7 @@ input {
 
 input::placeholder {
   color: var(--input-placeholder);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   opacity: 1;
 }

@@ -16,7 +16,7 @@ export function fillSelect(select, values, selected) {
   values.forEach((value) => {
     const option = document.createElement('option');
     option.value = value;
-    option.textContent = value;
+    option.textContent = value.toUpperCase();
     select.appendChild(option);
   });
   select.value = current;
