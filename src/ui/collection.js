@@ -277,7 +277,7 @@ function createAddActionRow(labelText, onClick, tagName = 'li') {
 }
 
 function createAddLinkRow(groupName, onChange) {
-  return createAddActionRow('Add Link', () => {
+  return createAddActionRow('add link', () => {
     closeEditors();
     addingLinkGroup = groupName;
     expandGroup(groupName);
@@ -552,7 +552,7 @@ function createGroupEditor(onChange) {
 }
 
 function createAddGroupRow(onChange) {
-  return createAddActionRow('Add Group', () => {
+  return createAddActionRow('add group', () => {
     closeEditors();
     addingGroup = true;
     onChange();

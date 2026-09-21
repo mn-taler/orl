@@ -1,8 +1,8 @@
 import { getLinks } from './domain/store.js';
-import { renderCollection } from './ui/collection.js';
+import { renderCollection } from './ui/collection.js?v=mobile2';
 import { initOpenOptions } from './ui/open-options.js';
 import { initSettings } from './ui/settings.js';
-import { initTagsPanel } from './ui/tags-panel.js?v=addtag3';
+import { initTagsPanel } from './ui/tags-panel.js?v=mobile2';
 import { restoreListInfo, setStatus } from './ui/status.js';
 
 function boot() {

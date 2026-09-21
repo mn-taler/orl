@@ -37,7 +37,7 @@ describe('initTagsPanel', () => {
     ]);
   });
 
-  it('should save a tag from the editor and return to Add Tag', () => {
+  it('should save a tag from the editor and return to add tag', () => {
     mount();
     const refreshAll = vi.fn(() => panel.refresh());
     const panel = initTagsPanel({ refreshAll, setStatus: vi.fn() });
@@ -54,7 +54,7 @@ describe('initTagsPanel', () => {
       colorDark: TAG_PALETTE[0].dark,
     });
     expect(document.getElementById('global-tag-list').textContent).toContain('Work');
-    expect(document.querySelector('#tags-add .tree-add-group')?.getAttribute('aria-label')).toBe('Add Tag');
+    expect(document.querySelector('#tags-add .tree-add-group')?.getAttribute('aria-label')).toBe('add tag');
   });
 
   it('should keep the editor open and report validation errors', () => {

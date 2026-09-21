@@ -710,7 +710,7 @@ button.tree-toggle {
 }
 
 button.tree-toggle:hover {
-  background: var(--surface-hover);
+  background: transparent;
 }
 
 #link-list .tree-add,
@@ -748,7 +748,7 @@ button.tree-add-group {
 }
 
 button.tree-add-group:hover {
-  background: var(--surface-hover);
+  background: transparent;
 }
 
 .tree-add-plus {
