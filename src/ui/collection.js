@@ -619,10 +619,12 @@ export function renderCollection(listEl, onChange) {
   if (deletingGroup && !store.groups.some((group) => group.name === deletingGroup)) {
     deletingGroup = null;
   }
+  const scrollTop = listEl.scrollTop;
   listEl.innerHTML = '';
   store.groups.filter((group) => !isReservedGroupName(group.name)).forEach((group) => {
     listEl.appendChild(createTreeGroup(group, onChange));
   });
+  listEl.scrollTop = scrollTop;
   const addEl = document.getElementById('collection-add');
   if (addEl) {
     addEl.innerHTML = '';
