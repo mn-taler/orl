@@ -1,5 +1,5 @@
 import { createTagChip } from './chips.js';
-import { createSelectCaret } from './dom.js';
+import { createSelectCaret } from './dom.js?v=type1';
 
 export function bindTagMultiSelect({
   toggle,

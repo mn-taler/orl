@@ -86,7 +86,7 @@ button.options-toggle {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -97,8 +97,8 @@ button.options-toggle:hover {
 
 .options-arrow {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   transition: transform 0.15s ease;
   transform: rotate(90deg);
 }
@@ -125,7 +125,7 @@ button.options-toggle[aria-expanded="true"] .options-arrow {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 
@@ -366,7 +366,7 @@ button.tag-select-toggle {
   border-radius: 6px;
   background: var(--surface-inset);
   color: var(--input-text);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 button.tag-select-toggle:hover {
@@ -384,8 +384,8 @@ button.tag-select-toggle:hover {
 
 .tag-select-caret {
   flex-shrink: 0;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   opacity: 0.65;
 }
 
@@ -526,7 +526,7 @@ button.tag-select-option[aria-selected="true"] {
   gap: 8px;
   padding: 4px 0;
   min-height: 0;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .tree-link-frame {
@@ -536,7 +536,7 @@ button.tag-select-option[aria-selected="true"] {
   align-items: stretch;
   gap: 2px;
   padding: 6px 6px 6px 12px;
-  min-height: 72px;
+  min-height: 76px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--glass-well);
@@ -547,7 +547,7 @@ button.tag-select-option[aria-selected="true"] {
   align-items: center;
   gap: 8px;
   min-width: 0;
-  min-height: 28px;
+  min-height: 30px;
 }
 
 .tree-link-editor-frame {
@@ -564,7 +564,7 @@ button.tag-select-option[aria-selected="true"] {
   align-items: stretch;
   overflow: hidden;
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   border-top: 1px solid var(--divider);
   border-radius: 0 0 10px 10px;
   background: var(--surface);
@@ -578,11 +578,11 @@ button.tag-select-option[aria-selected="true"] {
   flex: 1 1 0;
   min-width: 0;
   padding: 0 6px 0 12px;
-  min-height: 40px;
+  min-height: 44px;
   border: none;
   border-radius: 0;
   background: transparent;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
 }
 
@@ -649,7 +649,7 @@ html.dark #tags-add button.tree-link-bar-delete {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   text-align: left;
 }
@@ -771,7 +771,7 @@ button.tree-add-group {
   border-radius: 0;
   background: transparent;
   color: var(--add);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   text-align: left;
 }
@@ -852,7 +852,7 @@ button.tags-toggle:hover {
   min-width: 0;
   min-height: 0;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .tree-link-confirm-prefix,
@@ -877,12 +877,12 @@ button.tags-toggle:hover {
 #link-list .link-url {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 28px;
+  min-height: 30px;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 28px;
+  line-height: 30px;
   color: var(--link);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -897,8 +897,8 @@ button.tags-toggle:hover {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   min-height: 0;
   padding: 0;
   border: none;

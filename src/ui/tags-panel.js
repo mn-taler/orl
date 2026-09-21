@@ -3,7 +3,7 @@ import { addCatalogTag, removeCatalogTag, validateTag } from '../domain/tags.js'
 import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createEditorActionBar } from './action-bar.js';
 import { createTagChip } from './chips.js';
-import { bindDisclosure, createPlusIcon, createSelectCaret, createTreeArrow } from './dom.js';
+import { bindDisclosure, createPlusIcon, createSelectCaret, createTreeArrow } from './dom.js?v=type1';
 
 function paintSwatch(el, swatch) {
   el.style.setProperty('--tag-chip-light', swatch.light);

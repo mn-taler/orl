@@ -12,14 +12,14 @@ import {
 } from '../domain/groups.js';
 import { displayLinkLabel } from '../domain/links.js';
 import { getStore, saveStoreSafe } from '../domain/store.js';
-import { createDeleteActionBar, createEditorActionBar } from './action-bar.js';
+import { createDeleteActionBar, createEditorActionBar } from './action-bar.js?v=type1';
 import { createOverflowTagRow } from './chips.js?v=linkrow1';
 import {
   createEditIcon,
   createPlusIcon,
   createTrashIcon,
   createTreeArrow,
-} from './dom.js?v=mobile6';
+} from './dom.js?v=type1';
 import { setStatus } from './status.js';
 import { bindTagMultiSelect } from './tag-select.js';
 

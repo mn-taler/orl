@@ -36,8 +36,8 @@ export function createTreeArrow() {
   return svgIcon({
     class: 'tree-arrow',
     viewBox: '0 0 24 24',
-    width: '14',
-    height: '14',
+    width: '16',
+    height: '16',
     fill: 'none',
     stroke: 'currentColor',
     'stroke-width': '2.5',
@@ -58,8 +58,8 @@ export function createSelectCaret() {
   return svgIcon({
     class: 'tag-select-caret',
     viewBox: '0 0 12 12',
-    width: '10',
-    height: '10',
+    width: '12',
+    height: '12',
     'aria-hidden': 'true',
   }, path);
 }
@@ -74,13 +74,13 @@ export function createEditIcon() {
   path.setAttribute('stroke-linejoin', 'round');
   return svgIcon({
     viewBox: '0 0 24 24',
-    width: '16',
-    height: '16',
+    width: '18',
+    height: '18',
     'aria-hidden': 'true',
   }, path);
 }
 
-export function createTrashIcon(size = 16) {
+export function createTrashIcon(size = 18) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6');
   path.setAttribute('fill', 'none');
@@ -102,8 +102,8 @@ export function createPlusIcon() {
   return svgIcon({
     class: 'tree-add-plus',
     viewBox: '0 0 24 24',
-    width: '14',
-    height: '14',
+    width: '16',
+    height: '16',
     fill: 'none',
     stroke: 'currentColor',
     'stroke-width': '2.5',
@@ -117,8 +117,8 @@ export function createCloseIcon() {
   path.setAttribute('d', 'M18 6L6 18M6 6l12 12');
   return svgIcon({
     viewBox: '0 0 24 24',
-    width: '16',
-    height: '16',
+    width: '18',
+    height: '18',
     fill: 'none',
     stroke: 'currentColor',
     'stroke-width': '2.5',
@@ -132,8 +132,8 @@ export function createCheckIcon() {
   polyline.setAttribute('points', '20 6 9 17 4 12');
   return svgIcon({
     viewBox: '0 0 24 24',
-    width: '16',
-    height: '16',
+    width: '18',
+    height: '18',
     fill: 'none',
     stroke: 'currentColor',
     'stroke-width': '2.5',

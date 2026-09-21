@@ -1,4 +1,4 @@
-import { createCheckIcon, createCloseIcon, createTrashIcon } from './dom.js';
+import { createCheckIcon, createCloseIcon, createTrashIcon } from './dom.js?v=type1';
 
 function createActionButton(labelText, icon, className) {
   const button = document.createElement('button');
@@ -39,7 +39,7 @@ export function createEditorActionBar(onSave, onCancel) {
 export function createDeleteActionBar(onDelete, onCancel) {
   return createActionBar({
     confirmLabel: 'DELETE',
-    confirmIcon: createTrashIcon(16),
+    confirmIcon: createTrashIcon(18),
     confirmClass: 'tree-link-bar-delete',
     barClass: 'tree-link-confirm-bar',
     onConfirm: onDelete,
