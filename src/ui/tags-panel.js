@@ -176,7 +176,7 @@ export function initTagsPanel({ refreshAll, setStatus }) {
     editor.appendChild(createOptionsRow('Name', nameInput, 'add-tag-name'));
     editor.appendChild(colorRow);
 
-    const save = () => {
+    const save = async () => {
       const error = validateTag(nameInput.value);
       if (error) {
         setStatus('tags', error, 'error');
@@ -188,7 +188,7 @@ export function initTagsPanel({ refreshAll, setStatus }) {
         setStatus('tags', result.error, 'error');
         return;
       }
-      const saveError = saveStoreSafe(store);
+      const saveError = await saveStoreSafe(store);
       if (saveError) {
         setStatus('tags', saveError, 'error');
         return;
@@ -237,14 +237,14 @@ export function initTagsPanel({ refreshAll, setStatus }) {
     }
     listEl.hidden = false;
     store.tags.forEach((tag) => {
-      listEl.appendChild(createTagChip(tag, (name) => {
+      listEl.appendChild(createTagChip(tag, async (name) => {
         const next = getStore();
         const result = removeCatalogTag(next, name);
         if (result.error) {
           setStatus('tags', result.error, 'error');
           return;
         }
-        const error = saveStoreSafe(next);
+        const error = await saveStoreSafe(next);
         if (error) {
           setStatus('tags', error, 'error');
           return;

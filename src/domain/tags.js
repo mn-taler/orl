@@ -2,10 +2,7 @@ import { MAX_TAG_CATALOG, TAG_MAX_LENGTH, TAG_PALETTE, TAG_PATTERN } from '../co
 
 function linksInStore(store) {
   const links = [];
-  for (const group of store.groups || []) {
-    links.push(...(group.links || []));
-    for (const subgroup of group.subgroups || []) links.push(...(subgroup.links || []));
-  }
+  for (const group of store.groups || []) links.push(...(group.links || []));
   return links;
 }
 

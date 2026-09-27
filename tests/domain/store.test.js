@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { MAX_LINKS, STORAGE_CORRUPT_KEY, STORAGE_KEY, STORAGE_KEY_LEGACY, TAG_PALETTE } from '../../src/config.js';
 import { flattenLinks } from '../../src/domain/groups.js';
 import {
+  clearLocalStore,
   createEmptyStore,
   createExportPayload,
   getStorageError,
@@ -15,13 +16,15 @@ import {
 import { makeGroup, makeLink, makeStore } from '../helpers.js';
 
 describe('normalizeStore', () => {
-  it('should create an empty Main store for null or invalid data', () => {
+  it('should create an empty store for null or invalid data', () => {
     expect(normalizeStore(null)).toEqual(createEmptyStore());
-    expect(normalizeStore(12).groups[0].name).toBe('Main');
+    expect(normalizeStore(12)).toEqual(createEmptyStore());
+    expect(createEmptyStore().groups).toEqual([]);
   });
 
   it('should import a legacy URL array into Main', () => {
     const store = normalizeStore(['example.com', 'https://b.example']);
+    expect(store.groups[0].name).toBe('Main');
     expect(store.groups[0].links.map((link) => link.url)).toEqual([
       'https://example.com/',
       'https://b.example/',
@@ -37,30 +40,41 @@ describe('normalizeStore', () => {
     expect(store.tags.map((tag) => tag.name)).toEqual(['Work', 'Home']);
   });
 
-  it('should import the grouped format and assign palette colors to colorless tags', () => {
+  it('should import the grouped format without inventing Main', () => {
     const store = normalizeStore({
       groups: [{
         name: 'Work',
         links: [{ url: 'https://a.example', tags: ['Alpha'] }],
-        subgroups: [],
       }],
       tags: ['Alpha', 'Beta'],
     });
-    expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Work']);
+    expect(store.groups.map((group) => group.name)).toEqual(['Work']);
     expect(store.tags.map((tag) => tag.name)).toEqual(['Alpha', 'Beta']);
     expect(TAG_PALETTE.some((swatch) => swatch.light === store.tags[0].colorLight)).toBe(true);
     expect(store.tags[0].colorLight).not.toBe(store.tags[1].colorLight);
   });
+
+  it('should flatten imported subgroups into sibling groups', () => {
+    const store = normalizeStore({
+      groups: [{
+        name: 'Work',
+        links: [{ url: 'https://a.example' }],
+        subgroups: [{ name: 'Later', links: [{ url: 'https://b.example' }] }],
+      }],
+    });
+    expect(store.groups.map((group) => group.name)).toEqual(['Work', 'Later']);
+    expect(store.groups[1].links[0].url).toBe('https://b.example/');
+  });
 });
 
 describe('pruneStore / serializeStore', () => {
-  it('should move a reserved Tags group into Main and keep empty extras', () => {
+  it('should move a reserved Tags group into the first remaining group', () => {
     const store = makeStore([
       makeGroup('Work'),
       makeGroup('Tags', [makeLink('https://a.example')]),
     ]);
     pruneStore(store);
-    expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Work']);
+    expect(store.groups.map((group) => group.name)).toEqual(['Work']);
     expect(store.groups[0].links[0].url).toBe('https://a.example');
   });
 
@@ -81,6 +95,7 @@ describe('pruneStore / serializeStore', () => {
       'color-dark': TAG_PALETTE[0].dark,
       'color-light': TAG_PALETTE[0].light,
     });
+    expect(serialized.groups[0].subgroups).toBeUndefined();
   });
 });
 
@@ -132,7 +147,6 @@ describe('persistence and import', () => {
           { url: 'https://old.example' },
           { url: 'https://named.example', name: 'Keep' },
         ],
-        subgroups: [],
       }],
     });
     const incoming = normalizeStore({
@@ -143,7 +157,6 @@ describe('persistence and import', () => {
           { url: 'https://named.example', name: 'Nope' },
           { url: 'https://new.example' },
         ],
-        subgroups: [],
       }],
     });
     const result = importIncomingStore(existing, incoming);
@@ -153,10 +166,18 @@ describe('persistence and import', () => {
     expect(existing.groups[0].links[1].name).toBe('Keep');
   });
 
-  it('should include an export timestamp', () => {
+  it('should clear the cached collection so export is empty', () => {
+    persistStore(normalizeStore(['https://a.example']));
+    clearLocalStore();
+    expect(getStore()).toEqual(createEmptyStore());
+    expect(createExportPayload().groups).toEqual([]);
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it('should include an export timestamp and omit a default group', () => {
     persistStore(createEmptyStore());
     const payload = createExportPayload();
     expect(payload.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(payload.groups[0].name).toBe('Main');
+    expect(payload.groups).toEqual([]);
   });
 });

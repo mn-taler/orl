@@ -1,19 +1,37 @@
 import { DARK_MODE_KEY, DARK_MODE_KEY_LEGACY, MAX_IMPORT_BYTES } from '../config.js';
+import { startGoogleSignIn } from '../auth/google.js';
+import { getSession, signOut } from '../auth/session.js';
+import { isSupabaseConfigured } from '../data/supabase/config.js';
 import {
+  clearLocalStore,
   createExportPayload,
   getStore,
   importIncomingStore,
   normalizeStore,
+  saveStoreSafe,
   storageErrorMessage,
 } from '../domain/store.js';
 import { applyDarkMode, resolveDarkMode, saveDarkMode } from '../data/preferences.js';
 import { readStoredValue } from '../data/storage.js';
 
-export function initSettings({ refreshCollection, setStatus }) {
+function refreshAuthItems() {
+  const signIn = document.getElementById('sign-in-google');
+  const signOutButton = document.getElementById('sign-out');
+  const session = isSupabaseConfigured() ? getSession() : null;
+  if (signIn) signIn.hidden = !isSupabaseConfigured() || Boolean(session);
+  if (!signOutButton) return;
+  signOutButton.hidden = !session;
+  const email = session?.user?.email;
+  signOutButton.textContent = email ? `Sign out (${email})` : 'Sign out';
+}
+
+export function initSettings({ refreshCollection, setStatus, onSignedOut, onEnteredLocal }) {
   const darkModeCheckbox = document.getElementById('dark-mode');
   const settingsButton = document.getElementById('settings-button');
   const settingsMenu = document.getElementById('settings-menu');
   const darkModeToggle = darkModeCheckbox.closest('.settings-toggle');
+  const signIn = document.getElementById('sign-in-google');
+  const signOutButton = document.getElementById('sign-out');
 
   const setSettingsMenuOpen = (open) => {
     settingsMenu.hidden = !open;
@@ -28,6 +46,26 @@ export function initSettings({ refreshCollection, setStatus }) {
   };
 
   applyResolvedDarkMode();
+  refreshAuthItems();
+
+  signIn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    setSettingsMenuOpen(false);
+    try {
+      await startGoogleSignIn();
+    } catch (error) {
+      setStatus('settings', error.message || 'Could not start sign-in', 'error');
+    }
+  });
+
+  signOutButton?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    setSettingsMenuOpen(false);
+    await signOut();
+    clearLocalStore();
+    refreshAuthItems();
+    onSignedOut?.();
+  });
 
   darkModeCheckbox.addEventListener('change', () => {
     const enabled = darkModeCheckbox.checked;
@@ -78,10 +116,17 @@ export function initSettings({ refreshCollection, setStatus }) {
     }
     const reader = new FileReader();
     reader.onerror = () => setStatus('settings', 'Could not read import file', 'error');
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const incoming = normalizeStore(JSON.parse(reader.result));
-        const { added, updated, skipped, importedTagCount } = importIncomingStore(getStore(), incoming);
+        const existing = getStore();
+        const { added, updated, skipped, importedTagCount } = importIncomingStore(existing, incoming);
+        const saveError = await saveStoreSafe(existing);
+        if (saveError) {
+          setStatus('settings', saveError, 'error');
+          return;
+        }
+        await onEnteredLocal?.();
         refreshCollection();
         if (added > 0) {
           const extra = [

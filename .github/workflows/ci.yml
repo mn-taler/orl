@@ -37,6 +37,14 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
+      - name: Write public config
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            node -e 'const fs=require("fs"); fs.writeFileSync("src/config.public.js", `export const SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL)};\nexport const SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY)};\n`);'
+          fi
       - name: Prepare site
         run: |
           mkdir _site

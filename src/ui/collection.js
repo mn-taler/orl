@@ -26,6 +26,7 @@ import { bindTagMultiSelect } from './tag-select.js';
 const expandedNodes = new Set();
 let editingUrl = null;
 let addingGroup = false;
+let addingRootLink = false;
 let addingLinkGroup = null;
 let editingGroup = null;
 let deletingUrl = null;
@@ -38,14 +39,15 @@ export function expandGroup(name) {
 function closeEditors() {
   editingUrl = null;
   addingGroup = false;
+  addingRootLink = false;
   addingLinkGroup = null;
   editingGroup = null;
   deletingUrl = null;
   deletingGroup = null;
 }
 
-function persistChange(store, onSuccess) {
-  const error = saveStoreSafe(store);
+async function persistChange(store, onSuccess) {
+  const error = await saveStoreSafe(store);
   if (error) {
     setStatus('collection', error, 'error');
     return false;
@@ -190,7 +192,9 @@ function createLinkForm(link, groupName, idPrefix) {
   tagToggle.setAttribute('aria-labelledby', `${idPrefix}-tag-label`);
 
   editor.appendChild(createOptionsRow('URL', urlInput, `${idPrefix}-url`));
-  editor.appendChild(createOptionsRow('Group', groupSelect, `${idPrefix}-group`));
+  if (listGroupNames(getStore()).length > 0 || groupName) {
+    editor.appendChild(createOptionsRow('Group', groupSelect, `${idPrefix}-group`));
+  }
   editor.appendChild(createOptionsRow('Name', nameInput, `${idPrefix}-name`));
   editor.appendChild(tagsRow);
 
@@ -214,8 +218,8 @@ function createLinkForm(link, groupName, idPrefix) {
   };
 }
 
-function createLinkEditorShell(form, onSave, onCancel, extraClass) {
-  const li = document.createElement('li');
+function createLinkEditorShell(form, onSave, onCancel, extraClass, tagName = 'li') {
+  const li = document.createElement(tagName);
   li.className = extraClass ? `tree-link tree-link-editing ${extraClass}` : 'tree-link tree-link-editing';
 
   const frame = document.createElement('div');
@@ -239,14 +243,14 @@ function createLinkEditorShell(form, onSave, onCancel, extraClass) {
 function createLinkEditor(link, groupName, onChange) {
   const form = createLinkForm(link, groupName, 'edit-link');
 
-  const save = () => {
+  const save = async () => {
     const store = getStore();
     const result = updateLinkInStore(store, link.url, form.getDraft());
     if (result.error) {
       setStatus('collection', result.error, 'error');
       return;
     }
-    const error = saveStoreSafe(store);
+    const error = await saveStoreSafe(store);
     if (error) {
       setStatus('collection', error, 'error');
       return;
@@ -263,22 +267,23 @@ function createLinkEditor(link, groupName, onChange) {
   });
 }
 
-function createAddLinkEditor(groupName, onChange) {
+function createAddLinkEditor(groupName, onChange, tagName = 'li') {
   const form = createLinkForm({ url: '', name: '', tags: [] }, groupName, 'add-link');
 
-  const save = () => {
+  const save = async () => {
     const store = getStore();
     const result = addLinkToStore(store, form.getDraft());
     if (result.error) {
       setStatus('collection', result.error, 'error');
       return;
     }
-    const error = saveStoreSafe(store);
+    const error = await saveStoreSafe(store);
     if (error) {
       setStatus('collection', error, 'error');
       return;
     }
     addingLinkGroup = null;
+    addingRootLink = false;
     expandGroup(result.group.name);
     onChange();
     setStatus('collection', result.updated ? 'Link updated' : 'Link added', 'success');
@@ -286,8 +291,9 @@ function createAddLinkEditor(groupName, onChange) {
 
   const li = createLinkEditorShell(form, save, () => {
     addingLinkGroup = null;
+    addingRootLink = false;
     onChange();
-  }, 'tree-add-editor');
+  }, 'tree-add-editor', tagName);
   requestAnimationFrame(() => form.urlInput.focus());
   return li;
 }
@@ -311,13 +317,16 @@ function createAddActionRow(labelText, onClick, tagName = 'li') {
   return li;
 }
 
-function createAddLinkRow(groupName, onChange) {
+function createAddLinkRow(groupName, onChange, { root = false, tagName = 'li' } = {}) {
   return createAddActionRow('Add link', () => {
     closeEditors();
-    addingLinkGroup = groupName;
-    expandGroup(groupName);
+    if (root) addingRootLink = true;
+    else {
+      addingLinkGroup = groupName;
+      expandGroup(groupName);
+    }
     onChange();
-  });
+  }, tagName);
 }
 
 function createLinkRow(link, groupName, onChange) {
@@ -387,9 +396,9 @@ function createLinkRow(link, groupName, onChange) {
   return li;
 }
 
-function createTreeNode(name, key, childEls, count, isSubgroup, leadingEl, actions) {
+function createTreeNode(name, key, childEls, count, leadingEl, actions) {
   const li = document.createElement('li');
-  li.className = isSubgroup ? 'tree-node tree-node-sub' : 'tree-node';
+  li.className = 'tree-node';
 
   const row = document.createElement('div');
   row.className = 'tree-node-row';
@@ -433,28 +442,17 @@ function createTreeNode(name, key, childEls, count, isSubgroup, leadingEl, actio
   return li;
 }
 
-function createTreeSubgroup(groupName, subgroup, onChange) {
-  const children = subgroup.links.map((link) => createLinkRow(link, groupName, onChange));
-  return createTreeNode(
-    subgroup.name,
-    `subgroup:${groupName}/${subgroup.name}`,
-    children,
-    subgroup.links.length,
-    true
-  );
-}
-
 function createTreeGroup(group, onChange) {
   if (editingGroup === group.name) {
     return createGroupNameEditor({
       tagName: 'li',
       idPrefix: 'edit-group',
       initialName: group.name,
-      onSaveName: (name) => {
+      onSaveName: async (name) => {
         const store = getStore();
         const result = renameGroup(store, group.name, name);
         if (result.error) return result.error;
-        const error = saveStoreSafe(store);
+        const error = await saveStoreSafe(store);
         if (error) return error;
         expandedNodes.delete(`group:${group.name}`);
         expandGroup(result.group.name);
@@ -490,10 +488,6 @@ function createTreeGroup(group, onChange) {
   }
 
   const children = group.links.map((link) => createLinkRow(link, group.name, onChange));
-  group.subgroups.forEach((subgroup) => {
-    if (subgroup.links.length === 0) return;
-    children.push(createTreeSubgroup(group.name, subgroup, onChange));
-  });
   const leading = addingLinkGroup === group.name
     ? createAddLinkEditor(group.name, onChange)
     : createAddLinkRow(group.name, onChange);
@@ -512,7 +506,6 @@ function createTreeGroup(group, onChange) {
     `group:${group.name}`,
     children,
     countGroupLinks(group),
-    false,
     leading,
     [editBtn, deleteBtn]
   );
@@ -548,8 +541,8 @@ function createGroupNameEditor({
 
   editor.appendChild(createOptionsRow('Name', nameInput, `${idPrefix}-name`));
 
-  const save = () => {
-    const error = onSaveName(nameInput.value);
+  const save = async () => {
+    const error = await onSaveName(nameInput.value);
     if (error) setStatus('collection', error, 'error');
   };
 
@@ -575,11 +568,11 @@ function createGroupEditor(onChange) {
     tagName: 'div',
     extraClass: 'tree-add-editor',
     idPrefix: 'add-group',
-    onSaveName: (name) => {
+    onSaveName: async (name) => {
       const store = getStore();
       const result = createGroup(store, name);
       if (result.error) return result.error;
-      const error = saveStoreSafe(store);
+      const error = await saveStoreSafe(store);
       if (error) return error;
       addingGroup = false;
       expandGroup(result.group.name);
@@ -628,6 +621,11 @@ export function renderCollection(listEl, onChange) {
   const addEl = document.getElementById('collection-add');
   if (addEl) {
     addEl.innerHTML = '';
+    if (store.groups.length === 0) {
+      addEl.appendChild(addingRootLink
+        ? createAddLinkEditor('', onChange, 'div')
+        : createAddLinkRow('', onChange, { root: true, tagName: 'div' }));
+    }
     addEl.appendChild(addingGroup ? createGroupEditor(onChange) : createAddGroupRow(onChange));
   }
 }

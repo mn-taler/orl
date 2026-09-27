@@ -10,6 +10,7 @@ import {
   OPEN_TAG_KEY,
   OPEN_TAG_KEY_LEGACY,
   THEME_COLOR_DARK,
+  USE_LOCAL_KEY,
   THEME_COLOR_LIGHT,
 } from '../config.js';
 import { normalizeOpenTags } from '../domain/tags.js';
@@ -63,6 +64,15 @@ export function saveOpenGroup(name) {
 
 export function getOpenTags() {
   return normalizeOpenTags(readStoredValue(OPEN_TAG_KEY, OPEN_TAG_KEY_LEGACY));
+}
+
+export function getUseLocal() {
+  return readStoredValue(USE_LOCAL_KEY) === 'true';
+}
+
+export function saveUseLocal(enabled) {
+  if (enabled) writeStoredValue(USE_LOCAL_KEY, 'true');
+  else removeStoredValue(USE_LOCAL_KEY);
 }
 
 export function saveOpenTags(names) {

@@ -5,10 +5,12 @@ import {
   getLinkAmount,
   getOpenGroup,
   getOpenTags,
+  getUseLocal,
   resolveDarkMode,
   saveLinkAmount,
   saveOpenGroup,
   saveOpenTags,
+  saveUseLocal,
 } from '../../src/data/preferences.js';
 
 describe('clampLinkAmount', () => {
@@ -21,6 +23,14 @@ describe('clampLinkAmount', () => {
 });
 
 describe('saved preferences', () => {
+  it('should persist local mode', () => {
+    expect(getUseLocal()).toBe(false);
+    saveUseLocal(true);
+    expect(getUseLocal()).toBe(true);
+    saveUseLocal(false);
+    expect(getUseLocal()).toBe(false);
+  });
+
   it('should store and read the link amount', () => {
     saveLinkAmount(7);
     expect(getLinkAmount()).toBe(7);
