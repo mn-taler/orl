@@ -37,7 +37,7 @@ describe('initTagsPanel', () => {
     ]);
   });
 
-  it('should save a tag from the editor and return to Add tag', () => {
+  it('should save a tag from the editor and return to Add tag', async () => {
     mount();
     const refreshAll = vi.fn(() => panel.refresh());
     const panel = initTagsPanel({ refreshAll, setStatus: vi.fn() });
@@ -46,6 +46,7 @@ describe('initTagsPanel', () => {
     document.querySelector('#tags-add .tree-add-group').click();
     document.getElementById('add-tag-name').value = 'Work';
     document.querySelector('#tags-add .tree-link-bar-save').click();
+    await Promise.resolve();
 
     expect(refreshAll).toHaveBeenCalled();
     expect(getStore().tags[0]).toMatchObject({

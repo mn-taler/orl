@@ -7,6 +7,7 @@ import {
   findGroup,
   findLinkInStore,
   findOrCreateGroup,
+  flattenImportedGroups,
   flattenLinks,
   isReservedGroupName,
   listOpenGroups,
@@ -28,20 +29,47 @@ function sampleStore() {
     ]),
     makeGroup('Home', [
       makeLink('https://home.example', { tags: ['Home', 'Work'] }),
-    ], [
-      { name: 'Later', links: [makeLink('https://later.example', { tags: ['Later'] })] },
+      makeLink('https://later.example', { tags: ['Later'] }),
     ]),
   ]);
 }
 
 describe('group names', () => {
-  it('should map empty, main, and reserved names to Main', () => {
-    expect(normalizeGroupName('')).toBe('Main');
-    expect(normalizeGroupName('main')).toBe('Main');
-    expect(normalizeGroupName('Tags')).toBe('Main');
+  it('should trim names and reject reserved or empty values', () => {
+    expect(normalizeGroupName('')).toBe('');
+    expect(normalizeGroupName('main')).toBe('main');
+    expect(normalizeGroupName('Tags')).toBe('');
     expect(normalizeGroupName('Work')).toBe('Work');
     expect(normalizeGroupName('x'.repeat(80))).toBe('x'.repeat(64));
     expect(isReservedGroupName(' tags ')).toBe(true);
+  });
+});
+
+describe('flattenImportedGroups', () => {
+  it('should lift subgroups to top-level groups', () => {
+    const groups = flattenImportedGroups([
+      {
+        name: 'Work',
+        links: [makeLink('https://work.example')],
+        subgroups: [{
+          name: 'Later',
+          links: [makeLink('https://later.example')],
+        }],
+      },
+    ]);
+    expect(groups.map((group) => group.name)).toEqual(['Work', 'Later']);
+    expect(groups[1].links[0].url).toBe('https://later.example/');
+  });
+
+  it('should use Parent · Child when the subgroup name is taken', () => {
+    const groups = flattenImportedGroups([
+      {
+        name: 'Work',
+        links: [],
+        subgroups: [{ name: 'Work', links: [makeLink('https://nested.example')] }],
+      },
+    ]);
+    expect(groups.map((group) => group.name)).toEqual(['Work', 'Work · Work']);
   });
 });
 
@@ -50,7 +78,7 @@ describe('createGroup', () => {
     const store = sampleStore();
     const result = createGroup(store, '  Work  ');
     expect(result.error).toBeUndefined();
-    expect(result.group).toEqual({ name: 'Work', links: [], subgroups: [] });
+    expect(result.group).toEqual({ name: 'Work', links: [] });
     expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Home', 'Work']);
   });
 
@@ -105,6 +133,15 @@ describe('addLinkToStore', () => {
     expect(findLinkInStore(store, 'https://new.example/')?.group.name).toBe('Home');
   });
 
+  it('should create the default group when saving the first link', () => {
+    const store = makeStore([]);
+    const result = addLinkToStore(store, { url: 'https://first.example' });
+    expect(result.error).toBeUndefined();
+    expect(result.group.name).toBe('Main');
+    expect(store.groups).toHaveLength(1);
+    expect(store.groups[0].links[0].url).toBe('https://first.example/');
+  });
+
   it('should reject an invalid or duplicate url and fill empty meta', () => {
     const store = editableStore();
     expect(addLinkToStore(store, {
@@ -135,7 +172,7 @@ describe('addLinkToStore', () => {
 });
 
 describe('find, flatten, and mutate', () => {
-  it('should create groups, find links in subgroups, and flatten them', () => {
+  it('should create groups, find links, and flatten them', () => {
     const store = sampleStore();
     expect(findOrCreateGroup(store, 'Work').name).toBe('Work');
     expect(flattenLinks(store).map((link) => link.url)).toEqual([
@@ -144,7 +181,7 @@ describe('find, flatten, and mutate', () => {
       'https://home.example',
       'https://later.example',
     ]);
-    expect(findLinkInStore(store, 'https://later.example')?.subgroup?.name).toBe('Later');
+    expect(findLinkInStore(store, 'https://later.example')?.group.name).toBe('Home');
   });
 
   it('should remove a tag from every link and a url from every group', () => {
@@ -165,8 +202,7 @@ describe('updateLinkInStore', () => {
       ]),
       makeGroup('Home', [
         makeLink('https://home.example/', { tags: ['Home'] }),
-      ], [
-        { name: 'Later', links: [makeLink('https://later.example/', { tags: ['Later'] })] },
+        makeLink('https://later.example/', { tags: ['Later'] }),
       ]),
     ]);
   }
@@ -188,7 +224,7 @@ describe('updateLinkInStore', () => {
     expect(findLinkInStore(store, 'https://plain.example/')?.group.name).toBe('Main');
   });
 
-  it('should move a subgroup link when the group changes', () => {
+  it('should move a link when the group changes', () => {
     const store = editableStore();
     const result = updateLinkInStore(store, 'https://later.example/', {
       url: 'https://later.example/',
@@ -197,19 +233,8 @@ describe('updateLinkInStore', () => {
       group: 'Main',
     });
     expect(result.group.name).toBe('Main');
-    expect(findLinkInStore(store, 'https://later.example/')?.subgroup).toBeUndefined();
     expect(findLinkInStore(store, 'https://later.example/')?.group.name).toBe('Main');
-  });
-
-  it('should keep a subgroup link in place when the group stays the same', () => {
-    const store = editableStore();
-    updateLinkInStore(store, 'https://later.example/', {
-      url: 'https://later.example/',
-      name: 'Later link',
-      tags: ['Later'],
-      group: 'Home',
-    });
-    expect(findLinkInStore(store, 'https://later.example/')?.subgroup?.name).toBe('Later');
+    expect(store.groups.find((group) => group.name === 'Home').links).toHaveLength(1);
   });
 
   it('should reject an invalid url or a url that already exists', () => {
@@ -235,7 +260,7 @@ describe('filterOpenLinks', () => {
     expect(urls).toHaveLength(4);
   });
 
-  it('should limit to one group including its subgroups', () => {
+  it('should limit to one group', () => {
     const urls = filterOpenLinks(sampleStore(), 'Home', []).map((link) => link.url);
     expect(urls).toEqual(['https://home.example', 'https://later.example']);
   });
@@ -269,6 +294,14 @@ describe('renameGroup and removeGroupFromStore', () => {
     expect(result.group.name).toBe('Inbox');
     expect(store.groups.map((group) => group.name)).toEqual(['Main', 'Inbox']);
     expect(result.group.links[0].url).toBe('https://home.example');
+  });
+
+  it('should rename and delete Main like any other group', () => {
+    const store = sampleStore();
+    expect(renameGroup(store, 'Main', 'Inbox').group.name).toBe('Inbox');
+    expect(removeGroupFromStore(store, 'Inbox').error).toBeUndefined();
+    expect(store.groups.map((group) => group.name)).toEqual(['Home']);
+    expect(findLinkInStore(store, 'https://main.example')).toBeNull();
   });
 
   it('should reject empty, reserved, missing, and duplicate names', () => {

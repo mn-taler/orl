@@ -6,7 +6,7 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
 
 # Volume root files
 .DocumentRevisions-V100
@@ -51,6 +51,9 @@ out/
 .env
 .env.local
 .env.*.local
+
+# Local secrets (Google OAuth client secret, etc.)
+.secret
 
 # npm cache directory
 .npm

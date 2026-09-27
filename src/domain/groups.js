@@ -7,65 +7,107 @@ export function isReservedGroupName(name) {
 
 export function normalizeGroupName(name) {
   const s = (name || '').trim().slice(0, MAX_GROUP_NAME_LENGTH);
-  if (!s || s.toLowerCase() === 'main' || isReservedGroupName(s)) return DEFAULT_GROUP;
+  if (!s || isReservedGroupName(s)) return '';
   return s;
 }
 
-export function normalizeSubgroup(subgroup) {
-  const links = Array.isArray(subgroup?.links)
-    ? subgroup.links.map(normalizeLinkEntry).filter(Boolean)
-    : [];
-  return {
-    name: (subgroup?.name || '').trim().slice(0, MAX_GROUP_NAME_LENGTH) || 'Untitled',
-    links,
-  };
+function claimGroupName(used, ...candidates) {
+  for (const candidate of candidates) {
+    const name = normalizeGroupName(candidate);
+    if (name && !used.has(name.toLowerCase())) {
+      used.add(name.toLowerCase());
+      return name;
+    }
+  }
+  const named = candidates.map(normalizeGroupName).find(Boolean);
+  const base = named || DEFAULT_GROUP;
+  let n = 2;
+  let name = `${base} ${n}`.slice(0, MAX_GROUP_NAME_LENGTH);
+  while (used.has(name.toLowerCase()) || isReservedGroupName(name)) {
+    n += 1;
+    name = `${base} ${n}`.slice(0, MAX_GROUP_NAME_LENGTH);
+  }
+  used.add(name.toLowerCase());
+  return name;
+}
+
+export function flattenImportedGroups(groups) {
+  const used = new Set();
+  const out = [];
+
+  for (const raw of Array.isArray(groups) ? groups : []) {
+    const rawName = (raw?.name || '').trim();
+    const links = Array.isArray(raw?.links)
+      ? raw.links.map(normalizeLinkEntry).filter(Boolean)
+      : [];
+    const subgroups = Array.isArray(raw?.subgroups) ? raw.subgroups : [];
+    const parentName = normalizeGroupName(rawName);
+    let destName = '';
+
+    if (parentName || links.length > 0) {
+      destName = parentName ? claimGroupName(used, parentName) : claimGroupName(used, DEFAULT_GROUP);
+      out.push({ name: destName, links });
+    }
+
+    for (const sub of subgroups) {
+      const subLinks = Array.isArray(sub?.links)
+        ? sub.links.map(normalizeLinkEntry).filter(Boolean)
+        : [];
+      const subRaw = (sub?.name || '').trim();
+      if (!subRaw && subLinks.length === 0) continue;
+      const parentLabel = destName || parentName || DEFAULT_GROUP;
+      out.push({
+        name: claimGroupName(used, subRaw, `${parentLabel} · ${subRaw || 'Untitled'}`),
+        links: subLinks,
+      });
+    }
+  }
+
+  return out;
 }
 
 export function normalizeGroup(group) {
-  const links = Array.isArray(group?.links)
-    ? group.links.map(normalizeLinkEntry).filter(Boolean)
-    : [];
-  const subgroups = Array.isArray(group?.subgroups) ? group.subgroups.map(normalizeSubgroup) : [];
   return {
-    name: normalizeGroupName(group?.name),
-    links,
-    subgroups,
+    name: normalizeGroupName(group?.name) || DEFAULT_GROUP,
+    links: Array.isArray(group?.links)
+      ? group.links.map(normalizeLinkEntry).filter(Boolean)
+      : [],
   };
 }
 
 export function mergeGroupInto(target, incoming) {
-  for (const link of incoming.links) {
+  for (const link of incoming.links || []) {
     mergeLinkIntoList(target.links, link);
   }
-  for (const subgroup of incoming.subgroups) {
-    let dest = target.subgroups.find((item) => item.name === subgroup.name);
-    if (!dest) {
-      dest = { name: subgroup.name, links: [] };
-      target.subgroups.push(dest);
-    }
-    for (const link of subgroup.links) {
-      mergeLinkIntoList(dest.links, link);
-    }
-  }
+}
+
+export function ensureDefaultGroup(store) {
+  if (store.groups.length > 0) return store.groups[0];
+  const group = { name: DEFAULT_GROUP, links: [] };
+  store.groups.push(group);
+  return group;
 }
 
 export function findOrCreateGroup(store, name) {
   const groupName = normalizeGroupName(name);
-  const existing = store.groups.find((item) => item.name === groupName);
+  if (!groupName) return ensureDefaultGroup(store);
+  const existing = store.groups.find((item) => item.name.toLowerCase() === groupName.toLowerCase());
   if (existing) return existing;
   if (store.groups.length >= MAX_GROUPS) {
-    return store.groups.find((item) => item.name === DEFAULT_GROUP) || store.groups[0];
+    return store.groups[0] || ensureDefaultGroup(store);
   }
-  const group = { name: groupName, links: [], subgroups: [] };
+  const group = { name: groupName, links: [] };
   store.groups.push(group);
   return group;
 }
 
 export function findGroup(store, name) {
   const groupName = normalizeGroupName(name);
-  return store.groups.find((item) => item.name === groupName)
-    || store.groups.find((item) => item.name === DEFAULT_GROUP)
-    || store.groups[0];
+  if (groupName) {
+    const match = store.groups.find((item) => item.name.toLowerCase() === groupName.toLowerCase());
+    if (match) return match;
+  }
+  return store.groups[0] || null;
 }
 
 export function createGroup(store, name) {
@@ -75,24 +117,19 @@ export function createGroup(store, name) {
   const exists = store.groups.some((item) => item.name.toLowerCase() === groupName.toLowerCase());
   if (exists) return { error: 'Group already exists' };
   if (store.groups.length >= MAX_GROUPS) return { error: 'Too many groups' };
-  const group = { name: groupName, links: [], subgroups: [] };
+  const group = { name: groupName, links: [] };
   store.groups.push(group);
   return { group };
 }
 
 export function flattenLinks(store) {
   const links = [];
-  for (const group of store.groups) {
-    links.push(...group.links);
-    for (const subgroup of group.subgroups) links.push(...subgroup.links);
-  }
+  for (const group of store.groups) links.push(...group.links);
   return links;
 }
 
 export function flattenGroupLinks(group) {
-  const links = group.links.slice();
-  for (const subgroup of group.subgroups) links.push(...subgroup.links);
-  return links;
+  return group.links.slice();
 }
 
 export function flattenUrls(store) {
@@ -103,20 +140,16 @@ export function findLinkInStore(store, url) {
   for (const group of store.groups) {
     const inGroup = group.links.find((link) => link.url === url);
     if (inGroup) return { link: inGroup, group };
-    for (const subgroup of group.subgroups) {
-      const inSubgroup = subgroup.links.find((item) => item.url === url);
-      if (inSubgroup) return { link: inSubgroup, group, subgroup };
-    }
   }
   return null;
 }
 
 export function groupHasLinks(group) {
-  return group.links.length > 0 || group.subgroups.some((subgroup) => subgroup.links.length > 0);
+  return group.links.length > 0;
 }
 
 export function countGroupLinks(group) {
-  return group.links.length + group.subgroups.reduce((sum, subgroup) => sum + subgroup.links.length, 0);
+  return group.links.length;
 }
 
 export function listOpenGroups(store) {
@@ -143,9 +176,6 @@ export function removeTagFromLinks(store, tag) {
 export function removeLinkFromStore(store, url) {
   for (const group of store.groups) {
     group.links = group.links.filter((item) => item.url !== url);
-    for (const subgroup of group.subgroups) {
-      subgroup.links = subgroup.links.filter((item) => item.url !== url);
-    }
   }
 }
 
@@ -202,7 +232,10 @@ export function addLinkToStore(store, draft) {
   }
   if (flattenLinks(store).length >= MAX_LINKS) return { error: 'Collection is full' };
 
-  const group = findGroup(store, draft?.group);
+  const requested = normalizeGroupName(draft?.group);
+  const group = requested
+    ? findOrCreateGroup(store, requested)
+    : (store.groups[0] || ensureDefaultGroup(store));
   if (!group) return { error: 'Group not found' };
   group.links.push(incoming);
   return { link: incoming, group };
@@ -226,7 +259,7 @@ export function updateLinkInStore(store, originalUrl, draft) {
   found.link.name = incoming.name;
   found.link.tags = incoming.tags.slice();
 
-  if (found.group.name === targetName) {
+  if (!targetName || found.group.name.toLowerCase() === targetName.toLowerCase()) {
     return { link: found.link, group: found.group };
   }
 

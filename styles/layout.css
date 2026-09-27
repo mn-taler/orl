@@ -11,7 +11,8 @@
   overscroll-behavior: none;
 }
 
-.container {
+.container,
+#app-shell {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -19,11 +20,22 @@
   min-height: 0;
 }
 
-.container > p {
+.container > p,
+.app-tagline {
   margin: 0;
   color: var(--text-muted);
   font-size: 14px;
 }
+
+body.is-booting #sign-in-page,
+body.is-booting #app-shell {
+  visibility: hidden;
+}
+
+body.is-signed-out #app-shell {
+  display: none;
+}
+
 
 .glass-panel {
   display: flex;
@@ -103,6 +115,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 44px;
 }
 
 h1 {

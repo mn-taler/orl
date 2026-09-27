@@ -6,8 +6,8 @@ export function makeLink(url, extras = {}) {
   };
 }
 
-export function makeGroup(name, links = [], subgroups = []) {
-  return { name, links, subgroups };
+export function makeGroup(name, links = []) {
+  return { name, links };
 }
 
 export function makeStore(groups, tags = []) {
@@ -15,7 +15,6 @@ export function makeStore(groups, tags = []) {
     groups: groups.map((group) => ({
       name: group.name,
       links: group.links || [],
-      subgroups: group.subgroups || [],
     })),
     tags,
   };

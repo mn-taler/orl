@@ -1,33 +1,73 @@
-import { getLinks } from './domain/store.js';
-import { renderCollection } from './ui/collection.js?v=type1';
+import { initSession } from './auth/session.js';
+import { getLinks, initStore } from './domain/store.js';
+import { renderCollection } from './ui/collection.js?v=cloud1';
 import { initOpenOptions } from './ui/open-options.js?v=type1';
-import { initSettings } from './ui/settings.js';
-import { initTagsPanel } from './ui/tags-panel.js?v=type1';
+import { initSettings } from './ui/settings.js?v=signin8';
+import { applyAuthView, enterLocalMode, initSignIn, leaveLocalMode, needsSignIn } from './ui/sign-in.js?v=signin7';
+import { initTagsPanel } from './ui/tags-panel.js?v=cloud1';
 import { restoreListInfo, setStatus } from './ui/status.js';
 
-function boot() {
+async function boot() {
   const linkList = document.getElementById('link-list');
+  let appReady = false;
   let refreshAll = () => {};
 
-  const openOptions = initOpenOptions({ setStatus });
-  const tagsPanel = initTagsPanel({
-    refreshAll: () => refreshAll(),
-    setStatus,
-  });
+  const startApp = async () => {
+    if (!appReady) {
+      try {
+        await initStore();
+      } catch (error) {
+        setStatus('settings', error.message || 'Could not load collection', 'error');
+      }
 
-  refreshAll = () => {
-    renderCollection(linkList, refreshAll);
-    restoreListInfo(getLinks());
-    tagsPanel.refresh();
-    openOptions.refresh();
+      const openOptions = initOpenOptions({ setStatus });
+      const tagsPanel = initTagsPanel({
+        refreshAll: () => refreshAll(),
+        setStatus,
+      });
+
+      refreshAll = () => {
+        renderCollection(linkList, refreshAll);
+        restoreListInfo(getLinks());
+        tagsPanel.refresh();
+        openOptions.refresh();
+      };
+      appReady = true;
+    }
+    refreshAll();
   };
 
-  initSettings({ refreshCollection: () => refreshAll(), setStatus });
-  refreshAll();
+  try {
+    await initSession();
+  } catch (error) {
+    setStatus('settings', error.message || 'Could not sign in', 'error');
+  }
+
+  initSignIn({
+    setStatus,
+    onUseLocal: () => startApp(),
+  });
+
+  initSettings({
+    refreshCollection: () => refreshAll(),
+    setStatus,
+    onSignedOut: () => {
+      leaveLocalMode();
+    },
+    onEnteredLocal: async () => {
+      enterLocalMode();
+      await startApp();
+    },
+  });
+
+  if (needsSignIn()) return;
+  await startApp();
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('DOMContentLoaded', () => {
+    boot();
+  });
 } else {
   boot();
 }

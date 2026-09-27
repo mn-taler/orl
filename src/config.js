@@ -15,8 +15,10 @@ export const MAX_NAME_LENGTH = 200;
 export const MAX_GROUP_NAME_LENGTH = 64;
 export const MAX_LINKS = 5000;
 export const MAX_GROUPS = 100;
-export const MAX_SUBGROUPS_PER_GROUP = 100;
 export const MAX_TAG_CATALOG = 1000;
+export const AUTH_SESSION_KEY = 'orl.auth.session';
+export const AUTH_PKCE_KEY = 'orl.auth.pkce';
+export const USE_LOCAL_KEY = 'orl.useLocal';
 export const MAX_IMPORT_BYTES = 3 * 1024 * 1024;
 
 export const MIN_LINK_AMOUNT = 1;

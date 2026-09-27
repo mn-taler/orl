@@ -2,12 +2,14 @@ import {
   DEFAULT_GROUP,
   MAX_GROUPS,
   MAX_LINKS,
-  MAX_SUBGROUPS_PER_GROUP,
   STORAGE_CORRUPT_KEY,
   STORAGE_KEY,
   STORAGE_KEY_LEGACY,
 } from '../config.js';
-import { readStoredValue, writeStoredValue } from '../data/storage.js';
+import { getSession } from '../auth/session.js';
+import { isSupabaseConfigured } from '../data/supabase/config.js';
+import { loadSnapshot, replaceSnapshot } from '../data/supabase/snapshot.js';
+import { readStoredValue, removeStoredValue, writeStoredValue } from '../data/storage.js';
 import {
   addStoreTags,
   extractImportedTags,
@@ -18,11 +20,11 @@ import {
 import {
   findLinkInStore,
   findOrCreateGroup,
+  flattenImportedGroups,
   flattenLinks,
   flattenUrls,
   isReservedGroupName,
   mergeGroupInto,
-  normalizeGroup,
 } from './groups.js';
 import { linkHasMeta, normalizeLinkEntry, serializeLink } from './links.js';
 
@@ -31,7 +33,7 @@ export const STORAGE_QUOTA = 'STORAGE_QUOTA';
 let storageLoadError = null;
 
 export function createEmptyStore() {
-  return { groups: [{ name: DEFAULT_GROUP, links: [], subgroups: [] }], tags: [] };
+  return { groups: [], tags: [] };
 }
 
 export function getStorageError() {
@@ -43,23 +45,25 @@ export function storageErrorMessage(error) {
   return 'Could not save';
 }
 
+export function isCloudActive() {
+  return isSupabaseConfigured() && Boolean(getSession()?.access_token);
+}
+
 function hasGroupFormat(data) {
-  return Boolean(data && Array.isArray(data.groups) && data.groups.length > 0);
+  return Boolean(data && Array.isArray(data.groups));
+}
+
+function storeHasData(store) {
+  return Boolean(store && (store.groups.length > 0 || store.tags.length > 0));
 }
 
 function trimStoreToLimits(store) {
   store.groups = store.groups.slice(0, MAX_GROUPS);
   let remaining = MAX_LINKS;
   for (const group of store.groups) {
-    group.subgroups = (group.subgroups || []).slice(0, MAX_SUBGROUPS_PER_GROUP);
     const keep = Math.min(group.links.length, remaining);
     group.links = group.links.slice(0, keep);
     remaining -= keep;
-    for (const subgroup of group.subgroups) {
-      const subKeep = Math.min(subgroup.links.length, remaining);
-      subgroup.links = subgroup.links.slice(0, subKeep);
-      remaining -= subKeep;
-    }
   }
   return store;
 }
@@ -69,11 +73,10 @@ export function normalizeStore(data) {
   if (data == null) return store;
 
   if (Array.isArray(data)) {
-    mergeGroupInto(findOrCreateGroup(store, DEFAULT_GROUP), {
-      name: DEFAULT_GROUP,
-      links: data.map(normalizeLinkEntry).filter(Boolean),
-      subgroups: [],
-    });
+    const links = data.map(normalizeLinkEntry).filter(Boolean);
+    if (links.length > 0) {
+      mergeGroupInto(findOrCreateGroup(store, DEFAULT_GROUP), { links });
+    }
     addStoreTags(store, []);
     return trimStoreToLimits(store);
   }
@@ -81,7 +84,7 @@ export function normalizeStore(data) {
   if (typeof data !== 'object') return store;
 
   if (hasGroupFormat(data)) {
-    for (const group of data.groups.map(normalizeGroup)) {
+    for (const group of flattenImportedGroups(data.groups)) {
       mergeGroupInto(findOrCreateGroup(store, group.name), group);
     }
     addStoreTags(store, extractImportedTags(data));
@@ -92,11 +95,7 @@ export function normalizeStore(data) {
     ? data.links.map(normalizeLinkEntry).filter(Boolean)
     : [];
   if (legacyLinks.length > 0) {
-    mergeGroupInto(findOrCreateGroup(store, DEFAULT_GROUP), {
-      name: DEFAULT_GROUP,
-      links: legacyLinks,
-      subgroups: [],
-    });
+    mergeGroupInto(findOrCreateGroup(store, DEFAULT_GROUP), { links: legacyLinks });
   }
 
   addStoreTags(store, extractImportedTags(data));
@@ -105,21 +104,13 @@ export function normalizeStore(data) {
 
 export function pruneStore(store) {
   const reserved = store.groups.filter((group) => isReservedGroupName(group.name));
-  if (reserved.length > 0) {
-    const main = findOrCreateGroup(store, DEFAULT_GROUP);
-    for (const group of reserved) {
-      mergeGroupInto(main, { ...group, name: DEFAULT_GROUP });
-    }
-  }
-  for (const group of store.groups) {
-    group.subgroups = group.subgroups.filter((subgroup) => subgroup.links.length > 0);
-  }
   store.groups = store.groups.filter((group) => !isReservedGroupName(group.name));
-  if (!store.groups.some((group) => group.name === DEFAULT_GROUP)) {
-    store.groups.unshift({ name: DEFAULT_GROUP, links: [], subgroups: [] });
-  } else {
-    const main = store.groups.find((group) => group.name === DEFAULT_GROUP);
-    store.groups = [main, ...store.groups.filter((group) => group.name !== DEFAULT_GROUP)];
+  if (reserved.length > 0) {
+    const links = reserved.flatMap((group) => group.links || []);
+    if (links.length > 0) {
+      const dest = findOrCreateGroup(store, store.groups[0]?.name || DEFAULT_GROUP);
+      mergeGroupInto(dest, { links });
+    }
   }
   trimStoreToLimits(store);
   rebuildTagCatalog(store, store.tags);
@@ -132,10 +123,6 @@ export function serializeStore(store) {
     groups: pruned.groups.map((group) => ({
       name: group.name,
       links: group.links.map(serializeLink),
-      subgroups: group.subgroups.map((subgroup) => ({
-        name: subgroup.name,
-        links: subgroup.links.map(serializeLink),
-      })),
     })),
     tags: Array.isArray(pruned.tags)
       ? pruned.tags.map((tag) => ({
@@ -161,6 +148,12 @@ function backupCorruptRaw(raw) {
   }
 }
 
+export function clearLocalStore() {
+  removeStoredValue(STORAGE_KEY, STORAGE_KEY_LEGACY);
+  removeStoredValue(STORAGE_CORRUPT_KEY);
+  storageLoadError = null;
+}
+
 export function persistStore(store) {
   try {
     writeStoredValue(STORAGE_KEY, JSON.stringify(serializeStore(store)), STORAGE_KEY_LEGACY);
@@ -175,16 +168,17 @@ export function saveStore(store) {
   persistStore(store);
 }
 
-export function saveStoreSafe(store) {
+export async function saveStoreSafe(store) {
   try {
     saveStore(store);
+    if (isCloudActive()) await replaceSnapshot(store);
     return null;
   } catch (error) {
     return storageErrorMessage(error);
   }
 }
 
-export function getStore() {
+function loadLocalStore() {
   storageLoadError = null;
   const raw = readStoredValue(STORAGE_KEY, STORAGE_KEY_LEGACY);
   if (!raw) return createEmptyStore();
@@ -210,6 +204,27 @@ export function getStore() {
     /* keep the readable in-memory store */
   }
   return store;
+}
+
+export function getStore() {
+  return loadLocalStore();
+}
+
+export async function initStore() {
+  const local = loadLocalStore();
+  if (!isCloudActive()) return local;
+
+  try {
+    const remote = pruneStore(normalizeStore(await loadSnapshot()));
+    if (storeHasData(remote)) {
+      persistStore(remote);
+      return remote;
+    }
+    if (storeHasData(local)) await replaceSnapshot(local);
+    return local;
+  } catch {
+    return local;
+  }
 }
 
 export function getLinks() {
@@ -241,21 +256,9 @@ export function importIncomingStore(existing, incoming) {
     total += 1;
   };
 
-  for (const group of incoming.groups) {
+  for (const group of flattenImportedGroups(incoming.groups)) {
     const dest = findOrCreateGroup(existing, group.name);
     for (const link of group.links) importLink(dest.links, link);
-    for (const subgroup of group.subgroups) {
-      let destSubgroup = dest.subgroups.find((item) => item.name === subgroup.name);
-      if (!destSubgroup) {
-        if (dest.subgroups.length >= MAX_SUBGROUPS_PER_GROUP) {
-          for (const link of subgroup.links) importLink(dest.links, link);
-          continue;
-        }
-        destSubgroup = { name: subgroup.name, links: [] };
-        dest.subgroups.push(destSubgroup);
-      }
-      for (const link of subgroup.links) importLink(destSubgroup.links, link);
-    }
   }
   addStoreTags(existing, incoming.tags);
   persistStore(existing);

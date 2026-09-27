@@ -14,4 +14,13 @@ describe('renderCollection', () => {
     renderCollection(listEl, vi.fn());
     expect(listEl.scrollTop).toBe(160);
   });
+
+  it('should offer Add link and Add group when the collection is empty', () => {
+    document.body.innerHTML = '<ul id="link-list"></ul><div id="collection-add"></div>';
+    renderCollection(document.getElementById('link-list'), vi.fn());
+    const labels = [...document.querySelectorAll('#collection-add .tree-add-group')].map(
+      (button) => button.getAttribute('aria-label')
+    );
+    expect(labels).toEqual(['Add link', 'Add group']);
+  });
 });
