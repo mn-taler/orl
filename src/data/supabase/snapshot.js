@@ -1,4 +1,4 @@
-import { supabaseRest, supabaseRpc } from './client.js';
+import { supabaseRestAll, supabaseRpc } from './client.js';
 
 function snapshotPayload(store) {
   return {
@@ -20,10 +20,10 @@ function snapshotPayload(store) {
 
 export async function loadSnapshot() {
   const [groups, links, tags, linkTags] = await Promise.all([
-    supabaseRest('/groups?select=id,name,position&order=position.asc'),
-    supabaseRest('/links?select=id,group_id,url,name,position&order=position.asc'),
-    supabaseRest('/tags?select=id,name,color_light,color_dark'),
-    supabaseRest('/link_tags?select=link_id,tag_id'),
+    supabaseRestAll('/groups?select=id,name,position&order=position.asc,id.asc'),
+    supabaseRestAll('/links?select=id,group_id,url,name,position&order=position.asc,id.asc'),
+    supabaseRestAll('/tags?select=id,name,color_light,color_dark&order=id.asc'),
+    supabaseRestAll('/link_tags?select=link_id,tag_id&order=link_id.asc,tag_id.asc'),
   ]);
 
   const tagsById = new Map((tags || []).map((tag) => [tag.id, tag.name]));
