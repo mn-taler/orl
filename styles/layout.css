@@ -79,7 +79,6 @@ body.is-signed-out #app-shell {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 6px;
 }
 
 #open-button {
@@ -139,15 +138,28 @@ h1 {
   overflow: hidden;
 }
 
+.link-collection-section:has(#collection-panel[hidden]) {
+  flex: 0 0 auto;
+}
+
 .glass-panel.link-collection-section {
   gap: 6px;
 }
 
-.link-collection {
+.section-body {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 6px;
+}
+
+#collection-panel {
+  flex: 1;
+  gap: 6px;
+}
+
+#open-panel {
+  gap: 6px;
 }
 
 .tags-section {
@@ -161,13 +173,5 @@ h1 {
 }
 
 #tags-panel {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
-  margin-top: 6px;
-  min-height: 0;
-}
-
-#tags-panel[hidden] {
-  display: none;
 }

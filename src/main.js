@@ -1,10 +1,10 @@
 import { initSession } from './auth/session.js';
 import { getLinks, initStore } from './domain/store.js';
-import { renderCollection } from './ui/collection.js?v=cloud1';
-import { initOpenOptions } from './ui/open-options.js?v=type1';
+import { initCollectionSection, renderCollection } from './ui/collection.js?v=section1';
+import { initOpenOptions } from './ui/open-options.js?v=section1';
 import { initSettings } from './ui/settings.js?v=signin8';
 import { applyAuthView, enterLocalMode, initSignIn, leaveLocalMode, needsSignIn } from './ui/sign-in.js?v=signin7';
-import { initTagsPanel } from './ui/tags-panel.js?v=cloud1';
+import { initTagsPanel } from './ui/tags-panel.js?v=section1';
 import { restoreListInfo, setStatus } from './ui/status.js';
 
 async function boot() {
@@ -20,6 +20,7 @@ async function boot() {
         setStatus('settings', error.message || 'Could not load collection', 'error');
       }
 
+      initCollectionSection();
       const openOptions = initOpenOptions({ setStatus });
       const tagsPanel = initTagsPanel({
         refreshAll: () => refreshAll(),

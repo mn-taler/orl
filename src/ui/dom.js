@@ -6,6 +6,12 @@ export function bindDisclosure(toggle, panel) {
   });
 }
 
+export function bindSectionToggle(toggle, panel) {
+  if (!toggle || !panel) return;
+  if (!toggle.querySelector('.tree-arrow')) toggle.appendChild(createTreeArrow());
+  bindDisclosure(toggle, panel);
+}
+
 export function fillSelect(select, values, selected) {
   const current = values.includes(selected) ? selected : '';
   select.innerHTML = '';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bindDisclosure, fillSelect } from '../../src/ui/dom.js';
+import { bindDisclosure, bindSectionToggle, fillSelect } from '../../src/ui/dom.js';
 
 describe('fillSelect', () => {
   it('should add All plus the given values and keep a known selection', () => {
@@ -30,6 +30,20 @@ describe('bindDisclosure', () => {
     expect(panel.hidden).toBe(false);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
 
+    toggle.click();
+    expect(panel.hidden).toBe(true);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+});
+
+describe('bindSectionToggle', () => {
+  it('should add the header arrow and collapse the section body', () => {
+    const toggle = document.createElement('button');
+    const panel = document.createElement('div');
+    toggle.setAttribute('aria-expanded', 'true');
+    bindSectionToggle(toggle, panel);
+
+    expect(toggle.querySelector('.tree-arrow')).toBeTruthy();
     toggle.click();
     expect(panel.hidden).toBe(true);
     expect(toggle.getAttribute('aria-expanded')).toBe('false');

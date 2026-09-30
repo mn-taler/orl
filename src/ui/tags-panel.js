@@ -3,7 +3,7 @@ import { addCatalogTag, removeCatalogTag, validateTag } from '../domain/tags.js'
 import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createEditorActionBar } from './action-bar.js';
 import { createTagChip } from './chips.js';
-import { bindDisclosure, createPlusIcon, createSelectCaret, createTreeArrow } from './dom.js?v=type1';
+import { bindSectionToggle, createPlusIcon, createSelectCaret } from './dom.js?v=section1';
 
 function paintSwatch(el, swatch) {
   el.style.setProperty('--tag-chip-light', swatch.light);
@@ -62,10 +62,7 @@ export function initTagsPanel({ refreshAll, setStatus }) {
     return { refresh: () => {} };
   }
 
-  if (!sectionToggle.querySelector('.tree-arrow')) {
-    sectionToggle.appendChild(createTreeArrow());
-  }
-  bindDisclosure(sectionToggle, sectionPanel);
+  bindSectionToggle(sectionToggle, sectionPanel);
 
   let addingTag = false;
   let closeColorMenu = () => {};

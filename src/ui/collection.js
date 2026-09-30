@@ -15,11 +15,12 @@ import { getStore, saveStoreSafe } from '../domain/store.js';
 import { createDeleteActionBar, createEditorActionBar } from './action-bar.js?v=type1';
 import { createOverflowTagRow } from './chips.js?v=linkrow1';
 import {
+  bindSectionToggle,
   createEditIcon,
   createPlusIcon,
   createTrashIcon,
   createTreeArrow,
-} from './dom.js?v=type1';
+} from './dom.js?v=section1';
 import { setStatus } from './status.js';
 import { bindTagMultiSelect } from './tag-select.js';
 
@@ -396,7 +397,7 @@ function createLinkRow(link, groupName, onChange) {
   return li;
 }
 
-function createTreeNode(name, key, childEls, count, leadingEl, actions) {
+function createTreeNode(name, key, childEls, count, actions) {
   const li = document.createElement('li');
   li.className = 'tree-node';
 
@@ -437,7 +438,6 @@ function createTreeNode(name, key, childEls, count, leadingEl, actions) {
   row.appendChild(toggle);
   (actions || []).forEach((action) => row.appendChild(action));
   li.appendChild(row);
-  if (leadingEl) li.appendChild(leadingEl);
   li.appendChild(children);
   return li;
 }
@@ -487,10 +487,10 @@ function createTreeGroup(group, onChange) {
     });
   }
 
-  const children = group.links.map((link) => createLinkRow(link, group.name, onChange));
-  const leading = addingLinkGroup === group.name
+  const addRow = addingLinkGroup === group.name
     ? createAddLinkEditor(group.name, onChange)
     : createAddLinkRow(group.name, onChange);
+  const children = [addRow, ...group.links.map((link) => createLinkRow(link, group.name, onChange))];
   const editBtn = createIconButton(`Edit ${group.name.toUpperCase()}`, createEditIcon(), 'tree-link-action tree-link-edit', () => {
     closeEditors();
     editingGroup = group.name;
@@ -506,7 +506,6 @@ function createTreeGroup(group, onChange) {
     `group:${group.name}`,
     children,
     countGroupLinks(group),
-    leading,
     [editBtn, deleteBtn]
   );
 }
@@ -593,6 +592,13 @@ function createAddGroupRow(onChange) {
     addingGroup = true;
     onChange();
   }, 'div');
+}
+
+export function initCollectionSection() {
+  bindSectionToggle(
+    document.getElementById('collection-toggle'),
+    document.getElementById('collection-panel'),
+  );
 }
 
 export function renderCollection(listEl, onChange) {

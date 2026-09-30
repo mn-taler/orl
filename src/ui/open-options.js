@@ -11,11 +11,13 @@ import {
   saveOpenGroup,
   saveOpenTags,
 } from '../data/preferences.js';
-import { bindDisclosure, fillSelect } from './dom.js?v=type1';
+import { bindDisclosure, bindSectionToggle, fillSelect } from './dom.js?v=section1';
 import { bindTagMultiSelect } from './tag-select.js';
 
 export function initOpenOptions({ setStatus }) {
   const openRandomLinkButton = document.getElementById('open-button');
+  const openToggle = document.getElementById('open-toggle');
+  const openPanel = document.getElementById('open-panel');
   const optionsToggle = document.getElementById('options-toggle');
   const optionsPanel = document.getElementById('options-panel');
   const linkAmountInput = document.getElementById('link-amount');
@@ -60,7 +62,12 @@ export function initOpenOptions({ setStatus }) {
     saveOpenGroup(openGroupSelect.value);
   });
 
+  bindSectionToggle(openToggle, openPanel);
   bindDisclosure(optionsToggle, optionsPanel);
+
+  openToggle?.addEventListener('click', () => {
+    if (openPanel?.hidden) tagSelect.close();
+  });
 
   optionsToggle.addEventListener('click', () => {
     if (optionsPanel.hidden) tagSelect.close();

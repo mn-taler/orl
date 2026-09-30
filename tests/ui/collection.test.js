@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { STORAGE_KEY } from '../../src/config.js';
 import { renderCollection } from '../../src/ui/collection.js';
 
 describe('renderCollection', () => {
@@ -22,5 +23,25 @@ describe('renderCollection', () => {
       (button) => button.getAttribute('aria-label')
     );
     expect(labels).toEqual(['Add link', 'Add group']);
+  });
+
+  it('should keep Add link inside a collapsed group', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      groups: [{ name: 'Main', links: [{ url: 'https://a.example/' }] }],
+      tags: [],
+    }));
+    document.body.innerHTML = '<ul id="link-list"></ul><div id="collection-add"></div>';
+    renderCollection(document.getElementById('link-list'), vi.fn());
+
+    const addLink = document.querySelector('#link-list [aria-label="Add link"]');
+    const group = addLink.closest('.tree-children');
+    expect(group.hidden).toBe(true);
+    expect(document.querySelector('#collection-add [aria-label="Add link"]')).toBeNull();
+
+    document.querySelector('#link-list .tree-toggle').click();
+    expect(group.hidden).toBe(false);
+
+    document.querySelector('#link-list .tree-toggle').click();
+    expect(group.hidden).toBe(true);
   });
 });

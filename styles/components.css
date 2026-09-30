@@ -812,11 +812,6 @@ button.tree-toggle:hover {
   flex-shrink: 0;
 }
 
-#link-list .tree-node > .tree-add,
-#link-list .tree-node > .tree-add-editor {
-  margin: 0 2px 4px 18px;
-}
-
 button.tree-add-group {
   display: flex;
   align-items: center;
@@ -849,11 +844,11 @@ button.tree-add-group:hover {
 }
 
 button.tree-toggle[aria-expanded="true"] .tree-arrow,
-button.tags-toggle[aria-expanded="true"] .tree-arrow {
+button.section-toggle[aria-expanded="true"] .tree-arrow {
   transform: rotate(-90deg);
 }
 
-button.tags-toggle {
+button.section-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -865,10 +860,15 @@ button.tags-toggle {
   border-radius: 0;
   background: transparent;
   color: var(--text);
+  text-align: left;
 }
 
-button.tags-toggle:hover {
+button.section-toggle:hover {
   background: transparent;
+}
+
+button.section-toggle .list-info {
+  flex: 1;
 }
 
 .tree-label {
